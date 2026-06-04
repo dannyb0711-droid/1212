@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>동화약품 OTC부문 매출대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+<style>
+* { font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; }
+@keyframes spin { to { transform: rotate(360deg); } }
+body {
+  background: url('./동화사옥.png') center center / cover fixed no-repeat;
+  min-height: 100vh; color: #1f2937;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: rgba(240,244,248,0.72);
+  pointer-events: none; z-index: 0;
+}
+.p-4 { position: relative; z-index: 1; }
+.card { background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border-radius: 14px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid #e5e7eb; background: white; transition: all .2s; white-space: nowrap; }
+.nav-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+.nav-btn.active { background: #1d4ed8; color: white; border-color: #1d4ed8; box-shadow: 0 2px 8px rgba(29,78,216,0.3); }
+.nav-btn-sm { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1.5px solid #e5e7eb; background: white; transition: all .2s; white-space: nowrap; }
+.nav-btn-sm:hover { border-color: #6366f1; color: #6366f1; }
+.nav-btn-sm.active { background: #6366f1; color: white; border-color: #6366f1; }
+.course-card { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px 10px; cursor: pointer; transition: all .2s; text-align: center; min-width: 80px; }
+.course-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); transform: translateY(-2px); }
+.course-card.active { border-color: #3b82f6; background: #eff6ff; }
+.avatar { width: 44px; height: 44px; background: #e5e7eb; border-radius: 50%; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #9ca3af; overflow: hidden; }
+.course-card.active .avatar { background: #dbeafe; color: #3b82f6; }
+.kpi-card { position: relative; overflow: hidden; }
+.kpi-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.chart-container { position: relative; width: 100%; }
+.section-title { font-size: 14px; font-weight: 700; color: #374151; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.rank-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+.analysis-card { border-radius: 12px; padding: 16px; }
+/* Korean Map SVG styles */
+.map-province { fill: #e8f0fe; stroke: white; stroke-width: 1; transition: fill .3s; }
+.map-province.highlighted { fill: #3b82f6; }
+.map-province.semi-highlighted { fill: #93c5fd; }
+/* Print/Export */
+@media print { body { background: white; } .nav-btn, .nav-btn-sm, .course-card { border: 1px solid #ddd !important; } }
+</style>
+</head>
+<body class="p-0">
+
+<!-- ══════════════════════════════════════════════════════
+     비밀번호 잠금 화면
+     ══════════════════════════════════════════════════════ -->
+<div id="lock-screen" style="
+  position:fixed; inset:0; z-index:9999;
+  background: linear-gradient(135deg, #0f2d5a 0%, #1a4480 45%, #0e3460 100%);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;">
+
+  <!-- 배경 패턴 -->
+  <div style="position:absolute;inset:0;opacity:.06;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:32px 32px;pointer-events:none;"></div>
+
+  <div style="
+    background:rgba(255,255,255,.07);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:24px;
+    padding:48px 44px;
+    width:100%; max-width:400px;
+    text-align:center;
+    box-shadow:0 32px 80px rgba(0,0,0,.35);
+    position:relative;">
+
+    <!-- 로고 -->
+    <div style="
+      width:90px; height:90px; border-radius:18px;
+      background:white;
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 20px;
+      box-shadow:0 8px 24px rgba(0,0,0,.25);
+      padding:6px;">
+      <img src="./DongWha_Symbol.jpg" alt="동화약품"
+        style="width:100%;height:100%;object-fit:contain;border-radius:12px;">
+    </div>
+
+    <div style="font-size:20px;font-weight:800;color:white;margin-bottom:4px;letter-spacing:-.3px;">동화약품 OTC</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:32px;font-weight:500;">영업관리 대시보드</div>
+
+    <!-- 비밀번호 입력 -->
+    <div style="position:relative;margin-bottom:14px;">
+      <input id="lock-input" type="password" placeholder="비밀번호를 입력하세요"
+        autocomplete="current-password"
+        style="
+          width:100%; padding:14px 48px 14px 18px;
+          border-radius:12px; border:1.5px solid rgba(255,255,255,.2);
+          background:rgba(255,255,255,.1); color:white;
+          font-size:15px; font-weight:600;
+          outline:none; letter-spacing:2px;
+          transition:border-color .2s, background .2s;"
+        onkeydown="if(event.key==='Enter') lockCheck()"
+        onfocus="this.style.borderColor='rgba(255,255,255,.6)';this.style.background='rgba(255,255,255,.15)'"
+        onblur="this.style.borderColor='rgba(255,255,255,.2)';this.style.background='rgba(255,255,255,.1)'">
+      <!-- 눈 아이콘 (보기/숨기기) -->
+      <span id="lock-eye" onclick="lockToggleEye()" style="
+        position:absolute; right:14px; top:50%; transform:translateY(-50%);
+        cursor:pointer; font-size:18px; color:rgba(255,255,255,.5);
+        user-select:none; transition:color .2s;"
+        onmouseenter="this.style.color='rgba(255,255,255,.9)'"
+        onmouseleave="this.style.color='rgba(255,255,255,.5)'">👁</span>
+    </div>
+
+    <!-- 오류 메시지 -->
+    <div id="lock-error" style="
+      color:#fca5a5; font-size:12px; font-weight:600;
+      min-height:18px; margin-bottom:12px;
+      opacity:0; transition:opacity .2s;"></div>
+
+    <!-- 확인 버튼 -->
+    <button onclick="lockCheck()" style="
+      width:100%; padding:14px;
+      border-radius:12px; border:none;
+      background:linear-gradient(135deg,#3b82f6,#2563eb);
+      color:white; font-size:15px; font-weight:700;
+      cursor:pointer; letter-spacing:.3px;
+      box-shadow:0 6px 20px rgba(59,130,246,.4);
+      transition:all .15s;">
+      🔓 확인
+    </button>
+
+    <div style="margin-top:22px;font-size:11px;color:rgba(255,255,255,.3);">
+      © 동화약품 OTC 영업관리팀
+    </div>
+  </div>
+</div>
+
+<!-- 잠금 해제 스크립트 -->
+<script>
+(function() {
+  // ★ 비밀번호 변경 시 아래 값만 수정하세요 ★
+  var PASS = 'dw1897';
+
+  // 세션 동안 유지 (새 탭/창을 열면 다시 입력)
+  var SESSION_KEY = 'dw_otc_auth';
+
+  function lockCheck() {
+    var inp = document.getElementById('lock-input');
+    var err = document.getElementById('lock-error');
+    if (inp.value === PASS) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      var screen = document.getElementById('lock-screen');
+      screen.style.transition = 'opacity .4s';
+      screen.style.opacity    = '0';
+      screen.style.pointerEvents = 'none';
+      setTimeout(function() { screen.style.display = 'none'; }, 420);
+    } else {
+      err.textContent = '비밀번호가 올바르지 않습니다';
+      err.style.opacity = '1';
+      inp.style.borderColor = 'rgba(252,165,165,.7)';
+      inp.value = '';
+      setTimeout(function() {
+        err.style.opacity = '0';
+        inp.style.borderColor = 'rgba(255,255,255,.2)';
+      }, 2000);
+      inp.focus();
+    }
+  }
+  window.lockCheck = lockCheck;
+
+  function lockToggleEye() {
+    var inp  = document.getElementById('lock-input');
+    var eye  = document.getElementById('lock-eye');
+    var show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    eye.textContent = show ? '🙈' : '👁';
+  }
+  window.lockToggleEye = lockToggleEye;
+
+  // 이미 인증된 세션이면 바로 통과
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+  } else {
+    // 대시보드 콘텐츠 숨김 (잠금 해제 전까지)
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('lock-input').focus();
+    });
+  }
+})();
+</script>
+<div style="position: sticky; top: 0; z-index: 100;">
+  <div style="max-width: 1400px; margin: 0 auto; background: white; border-bottom: 1px solid #e5e7eb; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-radius: 0 0 12px 12px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 8px rgba(0,0,0,0.08);">
+    <div>
+      <h1 style="font-size: 18px; font-weight: 800; color: #111827; letter-spacing: -0.5px; margin: 0; line-height: 1.2;">
+        OTC부문 매출진행현황 리포트
+      </h1>
+      <div id="hdr-date" style="font-size: 11px; color: #6b7280; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+        <i class="fas fa-clock" style="font-size: 10px;"></i>
+        <span>기준일 로딩 중…</span>
+      </div>
+    </div>
+    <div style="width: 40px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); padding: 4px; flex-shrink: 0;">
+      <img src="./DongWha_Symbol.jpg" alt="동화약품" style="width: 100%; height: 100%; object-fit: contain;">
+    </div>
+  </div>
+</div>
+
+<div class="p-4" style="max-width: 1400px; margin: 0 auto;">
+
+<!-- NAVIGATION - 1차: 부문 -->
+<div class="card p-3 mb-3">
+  <div id="nav1" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;"></div>
+</div>
+
+<!-- NAVIGATION - 2차: 팀 -->
+<div id="nav2-wrap" class="card p-3 mb-3" style="display: none;">
+  <div id="nav2" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;"></div>
+</div>
+
+<!-- NAVIGATION - 3차: 담당자 -->
+<div id="nav3-wrap" class="card p-3 mb-3" style="display: none;">
+  <div id="nav3" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;"></div>
+</div>
+
+<!-- KPI SUMMARY CARDS -->
+<div id="kpi-cards" style="display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px;"></div>
+
+<!-- HR INFO CARD -->
+<div id="hr-card" style="display: none; margin-bottom: 12px;"></div>
+
+<!-- DEPT/TEAM LEVEL CHARTS -->
+<div id="charts-group" style="display: none;">
+  <!-- Row 1: Combo + Burnup -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+    <div class="card p-4" style="display:flex;flex-direction:column;">
+      <div class="section-title"><i class="fas fa-chart-bar" style="color:#3b82f6;"></i><span id="combo-title">담당자별 목표 대비 현황</span></div>
+      <div class="chart-container" style="flex:1;min-height:200px;"><canvas id="chart-combo"></canvas></div>
+    </div>
+    <div class="card p-4">
+      <div class="section-title"><i class="fas fa-fire" style="color:#f97316;"></i><span>매출 번업차트 (오늘 기준 누계)</span></div>
+      <div class="chart-container" style="height:360px;"><canvas id="chart-burnup"></canvas></div>
+    </div>
+  </div>
+  <!-- Row 2: Top/Bottom + Products -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+    <div class="card p-4" id="top-card-wrap"></div>
+    <div class="card p-4" id="bottom-card-wrap"></div>
+    <div class="card p-4">
+      <div class="section-title"><i class="fas fa-pills" style="color:#10b981;"></i><span>주요 제품군 동향</span></div>
+      <div class="chart-container" style="height:200px;"><canvas id="chart-products"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- COURSE LEVEL CHARTS -->
+<div id="charts-course" style="display: none;">
+  <!-- Row 1: Map + KPI Rank -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+    <div class="card p-4">
+      <div class="section-title"><i class="fas fa-map-marker-alt" style="color:#22c55e;"></i><span>담당 구역 지도</span></div>
+      <div id="territory-map" style="height:220px; position:relative;"></div>
+    </div>
+    <div class="card p-4">
+      <div class="section-title"><i class="fas fa-chart-line" style="color:#6366f1;"></i><span id="rank-chart-title">월별 KPI 순위(6개월) - 전체 113명</span></div>
+      <div class="chart-container" style="height:220px;"><canvas id="chart-rank"></canvas></div>
+    </div>
+  </div>
+  <!-- Row 2: Products + Personal Combo -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+    <div class="card p-4">
+      <div class="section-title"><i class="fas fa-chart-bar" style="color:#f59e0b;"></i><span>제품 구분별 달성률 현황</span></div>
+      <div class="chart-container" style="height:220px;"><canvas id="chart-course-products"></canvas></div>
+    </div>
+    <div class="card p-4">
+      <div class="section-title"><i class="fas fa-chart-mixed" style="color:#f97316;"></i><span id="course-combo-title">달성률 현황</span></div>
+      <div class="chart-container" style="height:220px;"><canvas id="chart-course-combo"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYSIS SECTION -->
+<div id="analysis-section" class="card p-4 mb-4" style="display: none;">
+  <div class="section-title" style="margin-bottom: 16px;"><i class="fas fa-robot" style="color:#6366f1;"></i><span id="analysis-title">종합 분석</span></div>
+  <div id="analysis-cards" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;"></div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+// ============================================================
+// PATCH: prevent ChartDataLabels hook errors before load
+// ── 담당자 프로필 사진 헬퍼 ─────────────────────────────────
+function getAvatar(code, size) {
+  const s   = size || 44;
+  const codeStr = String(code);
+  let img = window.DASHBOARD_IMAGES && window.DASHBOARD_IMAGES[codeStr];
+  // 99코드(팀장 공식코드) → 98코드로 사진 fallback (hireDates와 동일 기준)
+  if (!img && codeStr.endsWith('99')) {
+    const code98 = codeStr.slice(0,-2) + '98';
+    img = window.DASHBOARD_IMAGES && window.DASHBOARD_IMAGES[code98];
+  }
+  if (img) {
+    return `<img src="${img}"
+      style="width:${s}px;height:${s}px;border-radius:50%;
+             object-fit:cover;object-position:center;display:block;">`;
+  }
+  return s >= 80
+    ? `<i class="fas fa-user" style="font-size:36px;color:#6366f1;"></i>`
+    : `<i class="fas fa-user"></i>`;
+}
+// ============================================================
+(function(){
+  if(window.Chart && Chart.helpers && !Chart.defaults._patched){
+    Chart.defaults._patched = true;
+  }
+})();
+
+// ============================================================
+// CHART.JS ANIMATION DEFAULTS
+// ============================================================
+Chart.defaults.animation = {
+  duration: 800,
+  easing: 'easeOutQuart',
+  delay: (ctx) => ctx.dataIndex * 40
+};
+
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+const STATE = { level: 'total', deptCode: null, teamCode: null, courseCode: null };
+let CHARTS = {};
+
+// ============================================================
+// DATA STRUCTURES (populated at init)
+// ============================================================
+let ORGTREE = {};       // { deptCode: { name, teams: { teamCode: { name, courses: [{code, name}] } } } }
+let DEPT_META = {};     // { deptCode: { name } }
+let TERRITORY_MAP = {}; // { courseCode: '서울(마포구)' }
+let HIRE_MAP = {};      // { courseCode: { name, hireDate, assignDate } }
+let MGR_KPI = {};       // { courseCode: KPIRecord }
+let TL_KPI = {};        // { courseCode: KPIRecord } (team leaders)
+let TL_BY_TEAM = {};    // { teamCode: KPIRecord } (team leader indexed by team)
+let MAT_CAT = {};       // { materialCode: displayCategory }
+
+// Sales aggregates — s = YTD(판매누계금액), ms = 당월(dailySales 합계)
+let OTC_TOT = { t: 0, s: 0, ms: 0 };
+let DEPT_SALES = {};    // { deptCode: { t, s, ms, cats: { cat: { t, s } } } }
+let TEAM_SALES = {};    // { teamCode: { t, s, ms, cats: {}, deptCode } }
+let COURSE_SALES = {};  // { courseCode: { t, s, ms, cats: {}, teamCode } }
+
+// 일자별 누적 (번업차트용)
+let DAILY_BY_DEPT   = {};  // { deptCode: { 'YYYY-MM-DD': dailyAmt } }
+let DAILY_BY_TEAM   = {};  // { teamCode: { 'YYYY-MM-DD': dailyAmt } }
+let DAILY_BY_COURSE = {};  // { courseCode: { 'YYYY-MM-DD': dailyAmt } }
+let LAST_SALES_DATE = null; // 'YYYY-MM-DD' — dailySales 최신 날짜
+
+// Display config  ── 자재코드 → 표시 카테고리명
+const CAT_MAP = {
+  '1. 까스큐':      '까스활명수',
+  '2.후시딘':       '후시딘',
+  '3. 판콜':        '판콜',
+  '4. 잇치류':      '잇치',
+  '6-1. 바르지오류':'바르지오',
+  '6-6. 화이투벤류':'화이투벤',
+  '6-7. 큐립':      '큐립',
+  '6.-3. 알보칠':   '알보칠',
+  '6-4. 판콜에이치':'판콜에이치',
+  '6-2. 미니온':    '미니온',
+  '6-5. 기타활명수':'기타활명수',
+  '7. 동화_기타':   '기타',
+  '8. HHCK':        '제휴선',
+  '9. Gotc':        'Gotc',
+  '9. TKD':         '제휴선'
+};
+
+// 세비타비: 자재코드 5003052 → 별도 카테고리 (CAT_MAP 우선 적용 전 체크)
+const SEBITABI_CODE = '5003052';
+
+// ── 부문(dept)별 주요 제품군 구성 ─────────────────────────────
+// total/dept(111,112,113): 까스활명수 판콜 후시딘 잇치 큐립
+// dept(121 도매부):        까스활명수 판콜 후시딘 큐립 기타
+// dept(111,112,113 약국):  까스활명수 잇치 알보칠 큐립 세비타비
+const CATS_OTC    = ['까스활명수','판콜','후시딘','잇치','큐립'];
+let YTD_MONTHS = 1;  // init()에서 _meta.dataMonth 읽어 설정
+const CATS_PHARMA = ['까스활명수','잇치','알보칠','큐립','세비타비'];
+const CATS_DOMAI  = ['까스활명수','판콜','후시딘','큐립','기타'];
+const CATS_COURSE = ['까스활명수','후시딘','판콜','잇치','알보칠','큐립','세비타비','기타'];
+
+function getDisplayCats(level, deptCode) {
+  if (level === 'total')  return CATS_OTC;
+  if (deptCode === '121') return CATS_DOMAI;
+  if (['111','112','113'].includes(deptCode)) return CATS_PHARMA;
+  return CATS_OTC;
+}
+
+const CAT_COLORS = {
+  '까스활명수':'#3b82f6','후시딘':'#8b5cf6','판콜':'#ec4899','잇치':'#10b981',
+  '바르지오':'#f97316','화이투벤':'#ef4444','큐립':'#14b8a6','알보칠':'#f59e0b',
+  '세비타비':'#e11d48','기타':'#6b7280','기타활명수':'#06b6d4','판콜에이치':'#a855f7'
+};
+const LINE_COLORS = ['#3b82f6','#8b5cf6','#ec4899','#ef4444','#f97316','#10b981','#14b8a6','#06b6d4','#a855f7'];
+const DEPT_DISPLAY = { '111':'영업1부','112':'영업2부','113':'영업3부','121':'도매부','118':'OTC기타' };
+const DEPT_ORDER   = ['111','112','113','121'];
+
+// Province map for territory parsing
+const PROV_MAP = {
+  '서울':'서울특별시','경기':'경기도','인천':'인천광역시','강원':'강원특별자치도',
+  '충북':'충청북도','충남':'충청남도','대전':'대전광역시','세종':'세종특별자치시',
+  '전북':'전북특별자치도','전남':'전라남도','광주':'광주광역시',
+  '경북':'경상북도','경남':'경상남도','부산':'부산광역시','대구':'대구광역시',
+  '울산':'울산광역시','제주':'제주특별자치도'
+};
+
+// 도/시 레벨 중심 좌표 [lng, lat] — 지도 zoom에 사용
+const PROV_CENTER = {
+  '서울':[126.978,37.566],'경기':[127.05,37.41],'인천':[126.705,37.456],
+  '강원':[128.2,37.5],'충북':[127.7,36.8],'충남':[126.8,36.5],
+  '대전':[127.385,36.351],'세종':[127.25,36.48],'전북':[127.1,35.7],
+  '전남':[127.0,34.8],'광주':[126.852,35.160],'경북':[128.7,36.2],
+  '경남':[128.3,35.3],'부산':[129.075,35.180],'대구':[128.601,35.866],
+  '울산':[129.317,35.538],'제주':[126.5,33.4]
+};
+
+// ── 오늘 날짜 기반 동적 월 계산 ─────────────────────────────
+const _NOW          = new Date();
+const CURRENT_YEAR  = _NOW.getFullYear();
+const CURRENT_MM    = _NOW.getMonth() + 1;
+const CURRENT_MONTH = String(CURRENT_MM).padStart(2,'0');
+const CURRENT_KPI_KEY        = CURRENT_MONTH + '월순위';
+const CURRENT_KPI_KEY_YEARLY = `${CURRENT_YEAR}_${CURRENT_MONTH}월순위`;
+
+const MONTH_COLS = [], MONTH_KEYS_PREV = [], MONTH_KEYS_YEARLY = [];
+for (let i = 6; i >= 1; i--) {
+  let m = CURRENT_MM - i, y = CURRENT_YEAR;
+  if (m <= 0) { m += 12; y -= 1; }
+  const lbl = String(m).padStart(2,'0') + '월';
+  MONTH_COLS.push(lbl);
+  MONTH_KEYS_PREV.push(lbl + '순위');
+  MONTH_KEYS_YEARLY.push(`${y}_${lbl}순위`);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  const D = window.DASHBOARD_DATA;
+  if (!D) { alert('data.js 파일을 같은 폴더에 두세요.'); return; }
+
+  const now  = new Date();
+  const yyyy = now.getFullYear(), mm = now.getMonth()+1, dd = now.getDate();
+  const DOW  = ['일','월','화','수','목','금','토'][now.getDay()];
+
+  // _meta.dataMonth에서 누적 개월 수 추출 ("2026-05" → YTD_MONTHS=5)
+  const metaMonth = D._meta && D._meta.dataMonth;
+  if (metaMonth) {
+    const mNum = parseInt(metaMonth.split('-')[1] || '1');
+    if (mNum >= 1 && mNum <= 12) YTD_MONTHS = mNum;
+  }
+
+  buildLookups(D);
+  computeAggregates(D);
+
+  // YTD_MONTHS 재조정: LAST_SALES_DATE 기준 실 실적월로 보정
+  // (dataMonth가 당월이고 아직 실적이 없는 경우 전월 기준으로 표시)
+  if (LAST_SALES_DATE) {
+    const lastSalesMon = parseInt(LAST_SALES_DATE.split('-')[1] || '1');
+    if (lastSalesMon >= 1 && lastSalesMon <= 12) YTD_MONTHS = lastSalesMon;
+  }
+
+  // 헤더 기준일: 오늘 날짜(시스템) 기준
+  const hdrDateEl = document.getElementById('hdr-date');
+  if (hdrDateEl) {
+    hdrDateEl.innerHTML = `<i class="fas fa-clock" style="font-size:10px;"></i> 기준일: ${yyyy}년 ${mm}월 ${dd}일 &nbsp;·&nbsp; 금액단위: 백만원`;
+  }
+
+  initImageDB();
+  renderNav1();
+  selectLevel('total', null, null, null);
+}
+
+// ============================================================
+// IMAGES.JS 브릿지  (dept{i}_team{j}[_c{k}] → 코스코드 매핑)
+// images.js 는 구 db 객체 형식으로 사진 URL 을 주입하므로
+// ORGTREE/TL_BY_TEAM 을 이용해 window.db 를 가상으로 구성,
+// images.js 의 setter 가 window.DASHBOARD_IMAGES 에 저장하도록 함
+// ============================================================
+function initImageDB() {
+  window.DASHBOARD_IMAGES = window.DASHBOARD_IMAGES || {};
+
+  // dept / team 순서 = 코드 오름차순 정렬
+  const sortedDepts = Object.keys(ORGTREE).sort();
+
+  // db[key].hr.photoUrl setter → DASHBOARD_IMAGES[courseCode]
+  function makeEntry(courseCode) {
+    const code = String(courseCode);
+    return {
+      hr: {
+        get photoUrl() { return window.DASHBOARD_IMAGES[code] || null; },
+        set photoUrl(url) { window.DASHBOARD_IMAGES[code] = url; }
+      }
+    };
+  }
+
+  const dbObj = {};
+  sortedDepts.forEach((dc, di) => {
+    const dept      = ORGTREE[dc];
+    const sortedTeams = Object.keys(dept.teams).sort();
+
+    sortedTeams.forEach((tc, ti) => {
+      const team   = dept.teams[tc];
+      const prefix = `dept${di+1}_team${ti+1}`;
+
+      // 팀장: orgChart 직책='팀장' 우선 → TL_BY_TEAM 보조
+      const leaderFromOrg = team.courses.find(c => c.role === '팀장');
+      const tlRow  = TL_BY_TEAM[tc];
+      const tlCode = leaderFromOrg
+        ? String(leaderFromOrg.code)
+        : tlRow ? String(tlRow['코스'] || '') : '';
+      if (tlCode) dbObj[prefix] = makeEntry(tlCode);
+
+      // 담당자: 직책='팀장' 및 98/99 코스 제외 후 순서대로 c0, c1, c2 …
+      let ci = 0;
+      team.courses.forEach((c) => {
+        if (c.role === '팀장' || String(c.code).match(/[9][89]$/)) return;
+        dbObj[`${prefix}_c${ci}`] = makeEntry(c.code);
+        ci++;
+      });
+    });
+  });
+
+  // 스텁 db에 캡처된 사진 재적용
+  if (window._pendingPhotos) {
+    for (var _k in window._pendingPhotos) {
+      if (dbObj[_k]) dbObj[_k].hr.photoUrl = window._pendingPhotos[_k];
+    }
+  }
+  window.db = dbObj;
+}
+
+// ============================================================
+// BUILD LOOKUPS
+// ============================================================
+function buildLookups(D) {
+  // Org tree — 직책(팀장/팀원)·직위(매니저/파트너) 포함 저장
+  for (const r of D.orgChart) {
+    const dc = r['영업부'], dn = r['영업부명'], tc = r['영업팀'], tn = r['영업팀명'];
+    if (!ORGTREE[dc]) ORGTREE[dc] = { name: dn, teams: {} };
+    if (!ORGTREE[dc].teams[tc]) ORGTREE[dc].teams[tc] = { name: tn, courses: [] };
+    ORGTREE[dc].teams[tc].courses.push({
+      code:     r['코스'],
+      name:     r['성명'],
+      role:     r['직책'] || '팀원',   // '팀장' | '팀원'
+      position: r['직위']  || ''        // '매니저' | '파트너'
+    });
+    DEPT_META[dc] = dn;
+
+    // orgChart의 직책='팀장' 항목으로 TL_BY_TEAM 자동 보완
+    // (teamLeaderKPI에 없는 팀도 올바르게 처리)
+    if (r['직책'] === '팀장' && !TL_BY_TEAM[tc]) {
+      TL_BY_TEAM[tc] = {
+        코스: r['코스'], 성명: r['성명'],
+        직책: r['직위'] || '매니저', 영업팀: tc
+      };
+    }
+  }
+
+  // Territory
+  for (const r of D.territory) TERRITORY_MAP[r['코스']] = r['담당지역'] || '';
+
+  // Hire dates
+  for (const r of D.hireDates) {
+    HIRE_MAP[r['코스']] = { name: r['성명'], hireDate: r['입사일'], assignDate: r['부임일'] };
+  }
+
+  // Manager KPI
+  for (const r of D.managerKPI) MGR_KPI[r['코스']] = r;
+
+  // Wholesale KPI — 도매 담당자 KPI (MGR_KPI에 병합)
+  // ① plain 월순위 컬럼(01월순위)을 연도 접두어 컬럼(2026_01월순위)으로 보완
+  // ② 코스코드 불일치 시 성명으로 fallback 매핑
+  // ③ wholesaleKPI에 없는 도매 인원(지성용·김현성 등)은 빈 레코드 생성
+  let WS_KPI_BY_NAME = {};
+  if (D.wholesaleKPI) {
+    for (const r of D.wholesaleKPI) {
+      // plain 컬럼(01월순위)이 있으면 2026_01월순위로도 등록 (연도 접두어 보완)
+      const enriched = { ...r };
+      for (const k of Object.keys(r)) {
+        if (/^\d{2}월순위$/.test(k) && !r['2026_' + k]) {
+          enriched['2026_' + k] = r[k];
+        }
+      }
+      const c = enriched['코스'] && enriched['코스'].trim();
+      if (c) MGR_KPI[c] = enriched;
+      const n = enriched['성명'] && enriched['성명'].trim();
+      if (n) WS_KPI_BY_NAME[n] = enriched;
+    }
+    // orgChart 도매부(121) 기준으로 매핑 보완
+    if (D.orgChart) {
+      for (const o of D.orgChart) {
+        if (o['영업부'] !== '121') continue;
+        const oc = o['코스'];
+        const name = o['성명'] && o['성명'].trim();
+        if (!MGR_KPI[oc]) {
+          if (name && WS_KPI_BY_NAME[name]) {
+            // 성명으로 찾아서 올바른 코스코드로 등록
+            MGR_KPI[oc] = { ...WS_KPI_BY_NAME[name], '코스': oc };
+          } else {
+            // wholesaleKPI에 아예 없는 인원(2026년 신규 발령 등)
+            // → 빈 레코드 생성: 2025년 데이터 없음, 2026년도 null 처리
+            MGR_KPI[oc] = { '코스': oc, '성명': name, '영업부': '121', '_newMember': true };
+          }
+        }
+      }
+    }
+  }
+
+  // Team leader KPI
+  for (const r of D.teamLeaderKPI) {
+    const c = r['코스'];
+    if (c) TL_KPI[c] = r;
+    const t = r['영업팀'];
+    if (t) TL_BY_TEAM[t] = r;
+  }
+
+  // Material categories  ── 세비타비(5003052) 우선 분기
+  for (const m of D.materialClassification) {
+    const code = String(m['자재코드']);
+    if (code === SEBITABI_CODE) { MAT_CAT[code] = '세비타비'; continue; }
+    const disp = CAT_MAP[m['구분관리']] || '기타';
+    MAT_CAT[code] = disp;
+  }
+}
+
+// ============================================================
+// COMPUTE AGGREGATES
+// ============================================================
+function computeAggregates(D) {
+  // 당월 기준: _meta.dataMonth 우선 사용 (없으면 시스템 날짜 fallback)
+  const metaDataMonth = D._meta && D._meta.dataMonth;
+  const curMonthPfx = metaDataMonth || (() => {
+    const now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2,'0');
+  })();
+
+  // ── 1. sales2026ByMaterial → YTD 목표(t) + YTD 실적(s) + 당월 목표(monT) ────────
+  // 구조: 각 코스+자재 조합이 월별로 순서대로 등장 (1월→…→N월)
+  // 각 레코드의 판매목표금액 = 해당 월의 월별 목표 (누계 아님)
+  // 각 레코드의 판매누계금액 = 해당 월의 월별 실적 (누계 아님)
+  // - YTD 목표(t)    : 전 월 판매목표금액 합산 (1월~당월 합계)
+  // - YTD 실적(s)    : 전 월 판매누계금액 합산 (1월~당월 합계)
+  // - 당월 목표(monT): 마지막 레코드의 판매목표금액 (당월 목표)
+  const allRecs = D.sales2026ByMaterial || [];
+
+  // 패스1: 코스+자재별 월별 레코드 집계
+  // 구조 확인: 각 레코드는 해당 월의 목표(판매목표금액)와 실적(판매누계금액)을 나타냄
+  // → YTD 목표(t_sum): 전체 월 목표 합산, YTD 실적(s_sum): 전체 월 실적 합산
+  // → 당월 목표(t_last): 마지막 레코드(당월) 목표
+  const comboFinal = {}; // { ckey: { dc, tc, cc, cat, t_sum, s_sum, t_last } }
+  for (var pi = 0; pi < allRecs.length; pi++) {
+    var pr   = allRecs[pi];
+    var pdc  = pr['영업부'], ptc = pr['영업팀'], pcc = pr['코스'];
+    var pmat = String(pr['자재'] || '');
+    var pcat = pmat === SEBITABI_CODE ? '세비타비' : (MAT_CAT[pmat] || '기타');
+    var pt   = pr['판매목표금액'] || 0;
+    var ps   = pr['판매누계금액'] || 0;
+    var pkey = (pcc || '') + '|' + pmat;
+
+    if (!comboFinal[pkey]) {
+      comboFinal[pkey] = { dc: pdc, tc: ptc, cc: pcc, cat: pcat, t_sum: 0, s_sum: 0, t_last: 0 };
+    }
+    // 매 레코드 목표와 실적을 누산 (YTD 합계)
+    comboFinal[pkey].t_sum += pt;
+    comboFinal[pkey].s_sum += ps;
+    // 당월 목표는 마지막 레코드 값으로 덮어쓰기
+    comboFinal[pkey].t_last = pt;
+  }
+
+  // 패스2: 집계된 값으로 각 레벨 SALES 오브젝트에 합산
+  for (var ckey in comboFinal) {
+    var cf = comboFinal[ckey];
+    var dc = cf.dc, tc = cf.tc, cc = cf.cc, cat = cf.cat;
+    var t  = cf.t_sum;    // YTD 목표 (전월까지 월별 목표 합산)
+    var s  = cf.s_sum;    // YTD 실적 (전월까지 월별 실적 합산)
+    var mt = cf.t_last;   // 당월 목표 (마지막 레코드 = 당월 목표)
+
+    OTC_TOT.t += t; OTC_TOT.s += s;
+
+    if (!DEPT_SALES[dc]) DEPT_SALES[dc] = { t:0, s:0, ms:0, monT:0, cats:{} };
+    DEPT_SALES[dc].t += t; DEPT_SALES[dc].s += s;
+    if (!DEPT_SALES[dc].cats[cat]) DEPT_SALES[dc].cats[cat] = { t:0, s:0 };
+    DEPT_SALES[dc].cats[cat].t += t; DEPT_SALES[dc].cats[cat].s += s;
+
+    if (!TEAM_SALES[tc]) TEAM_SALES[tc] = { t:0, s:0, ms:0, monT:0, cats:{}, deptCode: dc };
+    TEAM_SALES[tc].t += t; TEAM_SALES[tc].s += s;
+    if (!TEAM_SALES[tc].cats[cat]) TEAM_SALES[tc].cats[cat] = { t:0, s:0 };
+    TEAM_SALES[tc].cats[cat].t += t; TEAM_SALES[tc].cats[cat].s += s;
+
+    if (!COURSE_SALES[cc]) COURSE_SALES[cc] = { t:0, s:0, ms:0, monT:0, cats:{}, teamCode: tc };
+    COURSE_SALES[cc].t += t; COURSE_SALES[cc].s += s;
+    if (!COURSE_SALES[cc].cats[cat]) COURSE_SALES[cc].cats[cat] = { t:0, s:0 };
+    COURSE_SALES[cc].cats[cat].t += t; COURSE_SALES[cc].cats[cat].s += s;
+
+    // 당월 목표 (마지막 레코드의 판매목표금액)
+    OTC_TOT.monT = (OTC_TOT.monT||0) + mt;
+    if (DEPT_SALES[dc])   DEPT_SALES[dc].monT   = (DEPT_SALES[dc].monT||0) + mt;
+    if (TEAM_SALES[tc])   TEAM_SALES[tc].monT   = (TEAM_SALES[tc].monT||0) + mt;
+    if (COURSE_SALES[cc]) COURSE_SALES[cc].monT = (COURSE_SALES[cc].monT||0) + mt;
+  }
+
+  // ── 2. dailySales → 번업차트 일별 데이터 + LAST_SALES_DATE 추출 ────────
+  // 당월 실적(ms)은 _meta.currentMonthActuals가 있으면 해당 값을 우선 사용
+  // (없으면 dailySales 정가 기준 fallback)
+  var dailySales = D.dailySales || [];
+  var cma = D._meta && D._meta.currentMonthActuals;  // { byCourse, byTeam, byDept }
+
+  for (var di = 0; di < dailySales.length; di++) {
+    var dr = dailySales[di];
+    var rawDate = dr['대금청구일'];
+    if (!rawDate) continue;
+    var dateStr = typeof rawDate === 'string' ? rawDate.substring(0,10) : new Date(rawDate).toISOString().substring(0,10);
+    if (!LAST_SALES_DATE || dateStr > LAST_SALES_DATE) LAST_SALES_DATE = dateStr;
+
+    var ddc  = String(dr['매출 부']   || dr['영업부']   || '');
+    var dtc  = String(dr['매출 팀']   || dr['영업팀']   || '');
+    var dcc  = String(dr['매출 코스'] || dr['실적코스'] || '');
+    var amt  = dr['정가'] || 0;
+    var pg   = String(dr['제품군'] || '');
+
+    // 번업차트용 일별 집계 (전체 - 필터 없음)
+    if (ddc) { if (!DAILY_BY_DEPT[ddc]) DAILY_BY_DEPT[ddc]={}; DAILY_BY_DEPT[ddc][dateStr]=(DAILY_BY_DEPT[ddc][dateStr]||0)+amt; }
+    if (dtc) { if (!DAILY_BY_TEAM[dtc]) DAILY_BY_TEAM[dtc]={}; DAILY_BY_TEAM[dtc][dateStr]=(DAILY_BY_TEAM[dtc][dateStr]||0)+amt; }
+    if (dcc) { if (!DAILY_BY_COURSE[dcc]) DAILY_BY_COURSE[dcc]={}; DAILY_BY_COURSE[dcc][dateStr]=(DAILY_BY_COURSE[dcc][dateStr]||0)+amt; }
+
+    if (!cma && dateStr.startsWith(curMonthPfx)) {
+      // currentMonthActuals 없을 때만 dailySales 정가로 ms 집계 (fallback)
+      // 도매부(121): 제품군 20 제외한 정가로 실적 집계
+      var isWholesale = (ddc === '121');
+      var msAmt = (isWholesale && pg === '20') ? 0 : amt;  // 도매 제품군 20 제외
+
+      OTC_TOT.ms += msAmt;
+      if (DEPT_SALES[ddc])   DEPT_SALES[ddc].ms   += msAmt;
+      if (TEAM_SALES[dtc])   TEAM_SALES[dtc].ms   += msAmt;
+      if (COURSE_SALES[dcc]) COURSE_SALES[dcc].ms += msAmt;
+
+      // 당월 제품군별 실적 집계 (주요제품군 동향 차트용)
+      if (msAmt !== 0) {
+        var dmat = String(dr['자재'] || '');
+        var dcat = dmat === SEBITABI_CODE ? '세비타비' : (MAT_CAT[dmat] || '기타');
+        if (DEPT_SALES[ddc]) {
+          if (!DEPT_SALES[ddc].msCats) DEPT_SALES[ddc].msCats = {};
+          DEPT_SALES[ddc].msCats[dcat] = (DEPT_SALES[ddc].msCats[dcat] || 0) + msAmt;
+        }
+        if (TEAM_SALES[dtc]) {
+          if (!TEAM_SALES[dtc].msCats) TEAM_SALES[dtc].msCats = {};
+          TEAM_SALES[dtc].msCats[dcat] = (TEAM_SALES[dtc].msCats[dcat] || 0) + msAmt;
+        }
+        if (COURSE_SALES[dcc]) {
+          if (!COURSE_SALES[dcc].msCats) COURSE_SALES[dcc].msCats = {};
+          COURSE_SALES[dcc].msCats[dcat] = (COURSE_SALES[dcc].msCats[dcat] || 0) + msAmt;
+        }
+      }
+    }
+  }
+
+  // ── 3. currentMonthActuals → ms 덮어쓰기 (일일실적보고 엑셀 기준) ────────
+  if (cma) {
+    var cmaC = cma.byCourse || {};
+    var cmaT = cma.byTeam   || {};
+    var cmaD = cma.byDept   || {};
+
+    // 코스별 ms 설정
+    for (var cc2 in COURSE_SALES) {
+      COURSE_SALES[cc2].ms = cmaC[cc2] || 0;
+    }
+    // 팀별 ms 설정
+    for (var tc2 in TEAM_SALES) {
+      TEAM_SALES[tc2].ms = cmaT[tc2] || 0;
+    }
+    // 부별 ms 설정
+    for (var dc2 in DEPT_SALES) {
+      DEPT_SALES[dc2].ms = cmaD[dc2] || 0;
+    }
+    // OTC 전체 ms = 부별 합산
+    OTC_TOT.ms = Object.values(cmaD).reduce(function(a,b){ return a+b; }, 0);
+  }
+}
+
+// ============================================================
+// FORMATTERS
+// ============================================================
+// 백만원 단위로 표시 (원 단위 입력 → 백만원으로 변환)
+const fmt = (n) => new Intl.NumberFormat('ko-KR').format(Math.round(n / 1000000));
+const fmtM = (n) => {
+  const m = n / 1000000; // 백만원 단위
+  if (Math.abs(m) >= 100000) return (m / 10000).toFixed(1) + '조';
+  if (Math.abs(m) >= 10000) return (m / 1000).toFixed(1) + '십억';
+  if (Math.abs(m) >= 1000) return (m / 1000).toFixed(1) + 'B';
+  if (Math.abs(m) >= 1) return Math.round(m) + '';
+  return (m * 1000).toFixed(0);
+};
+const fmtRate = (t, s) => t > 0 ? Math.round(s/t*100) : 0;
+const fmtDate = (iso) => {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+};
+
+// ============================================================
+// DESTROY ALL CHARTS
+// ============================================================
+function destroyCharts() {
+  for (const key in CHARTS) {
+    if (CHARTS[key]) { try { CHARTS[key].destroy(); } catch(e){} CHARTS[key] = null; }
+  }
+  if (window._ecMap) { try { window._ecMap.dispose(); } catch(e){} window._ecMap = null; }
+}
+
+// ============================================================
+// NAVIGATION RENDER
+// ============================================================
+function renderNav1() {
+  const wrap = document.getElementById('nav1');
+  const items = [
+    { code: null, label: 'OTC부문 전체', level: 'total' },
+    { code: '111', label: '영업1부', level: 'dept' },
+    { code: '112', label: '영업2부', level: 'dept' },
+    { code: '113', label: '영업3부', level: 'dept' },
+    { code: '121', label: '도매부', level: 'dept' },
+  ];
+  wrap.innerHTML = items.map(it => `
+    <button class="nav-btn ${STATE.level==='total'&&!it.code||STATE.deptCode===it.code?'active':''}"
+      onclick="selectLevel('${it.level}','${it.code||''}',null,null)">
+      ${it.label}
+    </button>`).join('');
+}
+
+function renderNav2(deptCode) {
+  if (!deptCode) { document.getElementById('nav2-wrap').style.display='none'; return; }
+  const dept = ORGTREE[deptCode];
+  if (!dept) { document.getElementById('nav2-wrap').style.display='none'; return; }
+  const wrap = document.getElementById('nav2-wrap');
+  const inner = document.getElementById('nav2');
+  wrap.style.display = 'block';
+  const teamCodes = Object.keys(dept.teams).sort();
+  inner.innerHTML = `
+    <button class="nav-btn-sm ${STATE.level==='dept'?'active':''}" onclick="selectLevel('dept','${deptCode}',null,null)">
+      선택 부서 전체
+    </button>
+    ${teamCodes.map(tc => `
+      <button class="nav-btn-sm ${STATE.teamCode===tc?'active':''}" onclick="selectLevel('team','${deptCode}','${tc}',null)">
+        ${dept.teams[tc].name}
+      </button>`).join('')}
+  `;
+}
+
+function renderNav3(teamCode) {
+  if (!teamCode) { document.getElementById('nav3-wrap').style.display='none'; return; }
+  const deptCode = STATE.deptCode;
+  const team = ORGTREE[deptCode]?.teams[teamCode];
+  if (!team) { document.getElementById('nav3-wrap').style.display='none'; return; }
+  const wrap = document.getElementById('nav3-wrap');
+  const inner = document.getElementById('nav3');
+  wrap.style.display = 'block';
+
+  // 팀장 식별: orgChart 직책='팀장' 우선 → TL_BY_TEAM 보조
+  const leaderCourseObj = team.courses.find(c => c.role === '팀장');
+  const tlRecord        = TL_BY_TEAM[teamCode];
+  const leaderCode      = leaderCourseObj?.code || tlRecord?.코스;
+  const leaderCourse    = leaderCode
+    ? team.courses.find(c => String(c.code) === String(leaderCode))
+    : null;
+
+  // 팀원 카드 (팀장 코드 및 98/99코스 제외 — 팀장 임시 활동 코스)
+  const courses = team.courses.filter(c =>
+    c.role !== '팀장' && !String(c.code).match(/[9][89]$/)
+  );
+
+  inner.innerHTML = courses.map((c, i) => {
+    const kpi  = MGR_KPI[c.code];
+    // 직위(매니저/파트너)를 orgChart에서 직접 표시; 없으면 KPI 직책 사용
+    const displayPos = c.position || (kpi ? kpi['직책'] : '');
+    return `
+      <div class="course-card ${STATE.courseCode===String(c.code)?'active':''}" onclick="selectLevel('course','${deptCode}','${teamCode}','${c.code}')">
+        <div class="avatar">${getAvatar(c.code, 44)}</div>
+        <div style="font-size:10px;color:#9ca3af;font-weight:500;">${i+1}코스</div>
+        <div style="font-size:13px;font-weight:700;color:#111827;margin-top:2px;">${c.name}</div>
+        ${displayPos ? `<div style="font-size:10px;color:#6b7280;">${displayPos}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  // 팀장 카드
+  if (leaderCourse) {
+    const leaderPos = leaderCourse.position || tlRecord?.직책 || '매니저';
+    inner.innerHTML += `
+      <div style="display:flex;align-items:center;color:#9ca3af;font-size:18px;padding:0 4px;align-self:center;">|</div>
+      <div class="course-card ${STATE.courseCode===String(leaderCourse.code)?'active':''}"
+           onclick="selectLevel('course','${deptCode}','${teamCode}','${leaderCourse.code}')"
+           style="border-color:#f59e0b;background:${STATE.courseCode===String(leaderCourse.code)?'#fffbeb':'#fffef5'};">
+        <div class="avatar" style="background:#fef3c7;color:#f59e0b;">
+  ${window.DASHBOARD_IMAGES?.[String(leaderCourse.code)]
+    ? getAvatar(leaderCourse.code, 44)
+    : '<i class="fas fa-crown"></i>'}
+</div>
+        <div style="font-size:10px;color:#f59e0b;font-weight:600;">팀장</div>
+        <div style="font-size:13px;font-weight:700;color:#111827;margin-top:2px;">${leaderCourse.name}</div>
+        <div style="font-size:10px;color:#6b7280;">${leaderPos}</div>
+      </div>`;
+  }
+}
+
+// ============================================================
+// SELECT LEVEL - main dispatcher
+// ============================================================
+function selectLevel(level, deptCode, teamCode, courseCode) {
+  destroyCharts();
+  STATE.level = level;
+  STATE.deptCode = deptCode || null;
+  STATE.teamCode = teamCode || null;
+  STATE.courseCode = courseCode || null;
+
+  renderNav1();
+  if (deptCode) renderNav2(deptCode); else document.getElementById('nav2-wrap').style.display='none';
+  if (teamCode) renderNav3(teamCode); else document.getElementById('nav3-wrap').style.display='none';
+
+  const isCourse = level === 'course';
+  document.getElementById('charts-group').style.display = isCourse ? 'none' : 'block';
+  document.getElementById('charts-course').style.display = isCourse ? 'block' : 'none';
+
+  renderKPICards(level, deptCode, teamCode, courseCode);
+  renderHRCard(level, deptCode, teamCode, courseCode);
+
+  if (!isCourse) {
+    renderGroupCharts(level, deptCode, teamCode);
+  } else {
+    renderCourseCharts(courseCode, teamCode, deptCode);
+  }
+  renderAnalysis(level, deptCode, teamCode, courseCode);
+}
+
+// ============================================================
+// KPI CARDS — 당월 메인(monT/ms) + YTD 서브(t/s)
+// ============================================================
+function renderKPICards(level, deptCode, teamCode, courseCode) {
+  var data = OTC_TOT, label = 'OTC부문';
+  if (level === 'course' && courseCode) {
+    data  = COURSE_SALES[courseCode] || {t:0,s:0,ms:0,monT:0};
+    label = HIRE_MAP[courseCode] && HIRE_MAP[courseCode].name || courseCode;
+  } else if (level === 'team' && teamCode) {
+    data  = TEAM_SALES[teamCode] || {t:0,s:0,ms:0,monT:0};
+    label = (ORGTREE[deptCode] && ORGTREE[deptCode].teams[teamCode] && ORGTREE[deptCode].teams[teamCode].name) || teamCode;
+  } else if (level === 'dept' && deptCode) {
+    data  = DEPT_SALES[deptCode] || {t:0,s:0,ms:0,monT:0};
+    label = DEPT_META[deptCode] || deptCode;
+  }
+
+  var monT  = data.monT || 0;   // 당월 목표 (sales2026ByMaterial 마지막 N행)
+  var monS  = data.ms   || 0;   // 당월 실적 (dailySales)
+  var ytdT  = data.t    || 0;   // YTD 누계 목표
+  var ytdS  = data.s    || 0;   // YTD 누계 실적
+
+  var monRate = monT > 0 ? Math.round(monS / monT * 100) : 0;
+  var monGap  = monT - monS;
+  var monOver = monGap < 0;
+  var ytdRate = ytdT > 0 ? Math.round(ytdS / ytdT * 100) : 0;
+  var ytdGap  = ytdT - ytdS;
+  var ytdOver = ytdGap < 0;
+
+  var lastDate = LAST_SALES_DATE
+    ? (function(){ var p=LAST_SALES_DATE.split('-'); return parseInt(p[1])+'/'+parseInt(p[2]); })()
+    : '집계중';
+  var ytdLabel = YTD_MONTHS > 1 ? '1~'+YTD_MONTHS+'월 YTD' : YTD_MONTHS+'월';
+
+  var kpiEl = document.getElementById('kpi-cards');
+  kpiEl.style.gridTemplateColumns = 'repeat(5,1fr)';
+
+  function card(color, icon, title, bigVal, unit, sub, extraHtml) {
+    return '<div class="card kpi-card p-4">'
+      +'<div class="kpi-card-accent" style="background:'+color+';"></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+        +'<div style="font-size:11px;font-weight:600;color:#6b7280;">'+title+'</div>'
+        +'<div style="width:28px;height:28px;border-radius:8px;background:'+color+'18;display:flex;align-items:center;justify-content:center;">'
+          +'<i class="fas '+icon+'" style="font-size:12px;color:'+color+';"></i>'
+        +'</div>'
+      +'</div>'
+      +'<div style="font-size:26px;font-weight:800;color:#111827;letter-spacing:-1px;">'+bigVal+'</div>'
+      +'<div style="font-size:11px;color:#9ca3af;margin-top:4px;">'+unit+'</div>'
+      +(sub ? '<div style="font-size:10px;color:#6b7280;margin-top:4px;padding-top:4px;border-top:1px solid #f3f4f6;">'+sub+'</div>' : '')
+      +(extraHtml || '')
+      +'</div>';
+  }
+
+  function rateCard(color, rate, sub) {
+    return '<div class="card kpi-card p-4">'
+      +'<div class="kpi-card-accent" style="background:'+color+';"></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+        +'<div style="font-size:11px;font-weight:600;color:#6b7280;">당월 달성률</div>'
+        +'<div style="width:28px;height:28px;border-radius:8px;background:'+color+'18;display:flex;align-items:center;justify-content:center;">'
+          +'<i class="fas fa-percent" style="font-size:12px;color:'+color+';"></i>'
+        +'</div>'
+      +'</div>'
+      +'<div style="font-size:28px;font-weight:800;color:'+color+';letter-spacing:-1px;">'+rate+'<span style="font-size:16px;">%</span></div>'
+      +'<div style="margin-top:8px;background:#f3f4f6;border-radius:20px;height:6px;overflow:hidden;">'
+        +'<div style="height:100%;width:'+Math.min(rate,100)+'%;background:'+color+';border-radius:20px;transition:width .8s;"></div>'
+      +'</div>'
+      +'<div style="font-size:10px;color:#6b7280;margin-top:4px;">'+sub+'</div>'
+      +'</div>';
+  }
+
+  var html = '';
+  // ① 당월 목표
+  html += card('#3b82f6','fa-bullseye',label+' 당월 목표',fmt(monT),'백만원',
+    'YTD 목표 '+fmt(ytdT)+' 백만원');
+  // ② 당월 실적
+  html += card('#10b981','fa-chart-line','당월 실적 ('+lastDate+' 기준)',fmt(monS),'백만원',
+    'YTD 실적 '+fmt(ytdS)+' 백만원');
+  // ③ 당월 달성률
+  html += rateCard(monRate>=100?'#10b981':'#6366f1', monRate,
+    (monRate>=100?'✅ 당월 목표 초과':'잔여 '+(100-monRate)+'%')+' · YTD '+ytdRate+'%');
+  // ④ 당월 잔여 Gap
+  html += card(
+    monOver?'#10b981':'#ef4444',
+    'fa-minus-circle',
+    '당월 잔여 목표 (Gap)',
+    (monOver?'-':'')+fmt(Math.abs(monGap)),
+    '백만원',
+    null,
+    '<div style="font-size:11px;color:'+(monOver?'#059669':'#ef4444')+';font-weight:600;margin-top:2px;">'+(monOver?'🎉 당월 초과 달성':'📌 당월 잔여')+'</div>'
+  );
+  // ⑤ YTD 누계 달성현황
+  html += '<div class="card kpi-card p-4" style="background:rgba(139,92,246,0.04);">'
+    +'<div class="kpi-card-accent" style="background:#8b5cf6;"></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
+      +'<div style="font-size:11px;font-weight:600;color:#7c3aed;">📊 '+ytdLabel+' YTD 누계</div>'
+      +'<div style="width:28px;height:28px;border-radius:8px;background:#8b5cf618;display:flex;align-items:center;justify-content:center;">'
+        +'<i class="fas fa-calendar-check" style="font-size:12px;color:#8b5cf6;"></i>'
+      +'</div>'
+    +'</div>'
+    +'<div style="font-size:22px;font-weight:900;color:#8b5cf6;letter-spacing:-1px;">'
+      +ytdRate+'<span style="font-size:14px;font-weight:700;">%</span>'
+      +'<span style="font-size:11px;font-weight:600;color:'+(ytdOver?'#059669':'#f59e0b')+';margin-left:6px;">'+(ytdOver?'🎉 초과':'진행중')+'</span>'
+    +'</div>'
+    +'<div style="margin-top:6px;background:#ede9fe;border-radius:20px;height:5px;overflow:hidden;">'
+      +'<div style="height:100%;width:'+Math.min(ytdRate,100)+'%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);border-radius:20px;transition:width .8s;"></div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;margin-top:6px;">'
+      +'<div><div style="font-size:9px;color:#9ca3af;">누계목표</div>'
+        +'<div style="font-size:12px;font-weight:700;color:#374151;">'+fmt(ytdT)+'<span style="font-size:9px;color:#9ca3af;"> 백만</span></div></div>'
+      +'<div style="text-align:right;"><div style="font-size:9px;color:#9ca3af;">누계실적</div>'
+        +'<div style="font-size:12px;font-weight:700;color:#8b5cf6;">'+fmt(ytdS)+'<span style="font-size:9px;color:#9ca3af;"> 백만</span></div></div>'
+    +'</div>'
+    +'</div>';
+
+  kpiEl.innerHTML = html;
+}
+
+// ============================================================
+// HR INFO CARD
+// ============================================================
+function renderHRCard(level, deptCode, teamCode, courseCode) {
+  const el = document.getElementById('hr-card');
+  if (level === 'total') { el.style.display = 'none'; return; }
+
+  let personCode, isTeamLeader = false;
+
+  if (level === 'course') {
+    personCode   = courseCode;
+    // 팀장 여부: orgChart 직책='팀장' 기준 (TL_KPI 보조)
+    const team   = ORGTREE[deptCode]?.teams[teamCode];
+    const orgC   = team?.courses.find(c => String(c.code) === String(courseCode));
+    isTeamLeader = (orgC?.role === '팀장') || !!TL_KPI[courseCode];
+  } else if (level === 'team' || level === 'dept') {
+    if (teamCode) {
+      // 팀장 코드: orgChart 직책='팀장' 우선 → TL_BY_TEAM → 98/99 suffix 순서로 fallback
+      const team       = ORGTREE[deptCode]?.teams[teamCode];
+      const leaderFromOrg = team?.courses.find(c => c.role === '팀장');
+      const tlByTeam   = TL_BY_TEAM[teamCode];
+      const legacyLeader = team?.courses.find(c => String(c.code).match(/[9][89]$/));
+      personCode   = leaderFromOrg?.code || tlByTeam?.코스 || legacyLeader?.code;
+      isTeamLeader = true;
+    } else {
+      el.style.display = 'none'; return;
+    }
+  }
+
+  if (!personCode) { el.style.display = 'none'; return; }
+
+  // 99코드(팀장 공식코드)는 hireDates/territory에 98코드로 저장되는 경우가 있음 → fallback
+  const hireCode = HIRE_MAP[personCode]
+    ? personCode
+    : (String(personCode).endsWith('99') ? String(personCode).slice(0,-2)+'98' : personCode);
+  const hire      = HIRE_MAP[hireCode] || {};
+  const territory = TERRITORY_MAP[hireCode] || TERRITORY_MAP[personCode] || '-';
+
+  // KPI 소스: 팀장이면 TL_KPI 우선, 없으면 MGR_KPI
+  const tlKpi  = TL_KPI[personCode] || TL_BY_TEAM[teamCode] || {};
+  const mgrKpi = MGR_KPI[personCode] || {};
+  const kpi    = isTeamLeader ? (Object.keys(tlKpi).length ? tlKpi : mgrKpi) : mgrKpi;
+
+  function pickRank(src, yk, sk) {
+    const yv = src[yk]||0, sv = src[sk]||0;
+    return (yv>0?yv:sv>0?sv:0)||null;
+  }
+  const rank05 = isTeamLeader
+    ? (pickRank(tlKpi,  CURRENT_KPI_KEY_YEARLY, CURRENT_KPI_KEY) ??
+       pickRank(mgrKpi, CURRENT_KPI_KEY_YEARLY, CURRENT_KPI_KEY))
+    : pickRank(mgrKpi, CURRENT_KPI_KEY_YEARLY, CURRENT_KPI_KEY);
+
+  const role     = (() => {
+    // orgChart의 직위(매니저/파트너) 우선 사용
+    const team2 = ORGTREE[deptCode]?.teams[teamCode];
+    const orgC2 = team2?.courses.find(c => String(c.code) === String(personCode));
+    return orgC2?.position || kpi['직책'] || (isTeamLeader ? '매니저' : '매니저');
+  })();
+  const name     = hire.name || kpi['성명'] || personCode;
+  const teamName = ORGTREE[deptCode]?.teams[teamCode]?.name || '';
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="card p-4">
+      <div style="display:grid; grid-template-columns:100px 1fr; gap:20px; align-items:center;">
+        <div style="position:relative; cursor:pointer;" onmouseenter="this.querySelector('.cam').style.opacity='1'" onmouseleave="this.querySelector('.cam').style.opacity='0'">
+          <div style="width:90px; height:90px; background:linear-gradient(135deg,#e0e7ff,#c7d2fe); border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 4px 12px rgba(99,102,241,0.2); overflow:hidden;">
+            ${getAvatar(personCode, 90)}
+          </div>
+          <div class="cam" style="position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s;">
+            <i class="fas fa-camera" style="color:white; font-size:20px;"></i>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+          <div>
+            <div style="font-size:11px; color:#9ca3af; font-weight:500;">이름/직위</div>
+            <div style="font-size:16px; font-weight:700; color:#111827; margin-top:2px;">${name} <span style="font-size:12px; color:#6b7280; font-weight:500;">${role}</span></div>
+            <div style="font-size:11px; color:#9ca3af; margin-top:2px;">담당 Territory</div>
+            <div style="font-size:12px; font-weight:600; color:#374151;">${teamName}</div>
+            <div style="font-size:11px; color:#6b7280; margin-top:1px;">${territory}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#9ca3af; font-weight:500;">입사일</div>
+            <div style="font-size:14px; font-weight:600; color:#374151; margin-top:2px;">${fmtDate(hire.hireDate)}</div>
+            <div style="font-size:11px; color:#9ca3af; margin-top:8px; font-weight:500;">부임일</div>
+            <div style="font-size:14px; font-weight:600; color:#374151; margin-top:2px;">${fmtDate(hire.assignDate)}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// GROUP CHARTS (total / dept / team level) — 당월 기준
+// ============================================================
+function renderGroupCharts(level, deptCode, teamCode) {
+  var groups = [], title = '';
+
+  if (level === 'total') {
+    title  = '영업부별 당월 목표 대비 현황';
+    groups = DEPT_ORDER.map(function(dc){ return { code:dc, label:DEPT_DISPLAY[dc]||dc, data:DEPT_SALES[dc]||{t:0,s:0,ms:0,monT:0} }; });
+  } else if (level === 'dept') {
+    var dept = ORGTREE[deptCode];
+    if (!dept) return;
+    title  = (DEPT_META[deptCode]||deptCode) + ' 팀별 당월 목표 대비 현황';
+    groups = Object.keys(dept.teams).sort().map(function(tc){ return { code:tc, label:dept.teams[tc].name.replace(/약국|팀/g,'').trim(), data:TEAM_SALES[tc]||{t:0,s:0,ms:0,monT:0} }; });
+  } else if (level === 'team') {
+    var dept2 = ORGTREE[deptCode];
+    if (!dept2 || !dept2.teams[teamCode]) return;
+    var team = dept2.teams[teamCode];
+    title   = team.name + ' 담당자별 당월 목표 대비 현황';
+    groups  = team.courses.filter(function(c){ return !String(c.code).match(/[9][89]$/); })
+              .map(function(c){ return { code:c.code, label:c.name, data:COURSE_SALES[c.code]||{t:0,s:0,ms:0,monT:0} }; });
+  }
+
+  document.getElementById('combo-title').textContent = title;
+
+  // 당월 기준 — monT(당월목표), monS(당월실적)
+  var labels  = groups.map(function(g){ return g.label; });
+  var monTs   = groups.map(function(g){ return Math.round((g.data.monT||0)/1000000); });
+  var monSs   = groups.map(function(g){ return Math.round((g.data.ms||0)/1000000); });
+  var rates   = groups.map(function(g,i){ return monTs[i]>0 ? Math.round(monSs[i]/monTs[i]*100) : 0; });
+  var maxRate = Math.max.apply(null, [120].concat(rates)) + 10;
+
+  var ctx = document.getElementById('chart-combo').getContext('2d');
+  CHARTS.combo = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label:'당월 달성률(%)', type:'line', data:rates, yAxisID:'yRate',
+          borderColor:'#ef4444', backgroundColor:'#ef444422', tension:0.3, pointRadius:5,
+          pointBackgroundColor:'#ef4444', datalabels:{ align:'top', color:'#ef4444', font:{weight:700,size:11}, formatter:function(v){return v+'%';} } },
+        { label:'당월 실적(백만)', data:monSs, yAxisID:'yAmt',
+          backgroundColor:'#3b82f6cc', borderRadius:4, datalabels:{display:false} },
+        { label:'당월 목표(백만)', data:monTs, yAxisID:'yAmt',
+          backgroundColor:'#e5e7eb', borderRadius:4, datalabels:{display:false} }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{labels:{font:{size:11},boxWidth:12}}, datalabels:{} },
+      scales:{
+        yAmt:{ type:'linear', position:'left', ticks:{callback:function(v){return v>=1000?(v/1000).toFixed(1)+'십억':v+'백만';},font:{size:10}}, grid:{color:'#f3f4f6'} },
+        yRate:{ type:'linear', position:'right', min:0, max:maxRate, ticks:{callback:function(v){return v+'%';},font:{size:10}}, grid:{display:false} },
+        x:{ ticks:{font:{size:10}} }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+
+  renderBurnupChart(level, deptCode, teamCode, groups);
+  renderTopBottom(groups, level, deptCode, teamCode);
+  renderProductsChart(level, deptCode, teamCode);
+}
+
+// ============================================================
+// BURN-UP CHART — 실제 dailySales + 당월목표(monT) + 마커
+// ============================================================
+function renderBurnupChart(level, deptCode, teamCode, groups) {
+  var refDate   = new Date();
+  var refY      = refDate.getFullYear();
+  var refMIdx   = refDate.getMonth();
+  var monNum    = refMIdx + 1;
+  var monPad    = String(monNum).padStart(2,'0');
+  var daysInMon = new Date(refY, refMIdx+1, 0).getDate();
+
+  var holidays = {};
+  [refY+'-'+monPad+'-01', refY+'-05-05', refY+'-06-06', refY+'-08-15',
+   refY+'-10-03', refY+'-10-09', refY+'-12-25'].forEach(function(k){ holidays[k]=true; });
+
+  var bizDays = [];
+  for (var d=1; d<=daysInMon; d++) {
+    var dow = new Date(refY, refMIdx, d).getDay();
+    var key = refY+'-'+monPad+'-'+String(d).padStart(2,'0');
+    if (dow!==0 && dow!==6 && !holidays[key]) bizDays.push({day:d, label:monNum+'/'+d, dateStr:key});
+  }
+  var TOTAL_DAYS = bizDays.length;
+  var labels     = bizDays.map(function(b){return b.label;});
+
+  // 레벨별 일별 데이터 소스
+  var dailyMapSource = level==='total' ? DAILY_BY_DEPT : level==='dept' ? DAILY_BY_TEAM : DAILY_BY_COURSE;
+
+  // TODAY_IDX: LAST_SALES_DATE 기준
+  var lastDataDay = LAST_SALES_DATE ? parseInt(LAST_SALES_DATE.split('-')[2]) : refDate.getDate();
+  var TODAY_IDX   = bizDays.length-1;
+  for (var bi=0; bi<bizDays.length; bi++) { if (bizDays[bi].day > lastDataDay){ TODAY_IDX = bi-1; break; } }
+  if (TODAY_IDX < 0) TODAY_IDX = 0;
+
+  // 당월 목표 합산 (monT 사용)
+  var maxTargetRaw = 0;
+  groups.forEach(function(g){ maxTargetRaw += (g.data.monT||0); });
+  var maxTargetM = maxTargetRaw / 1000000;
+
+  var sortedGroups = groups.slice(0,8).sort(function(a,b){
+    var rA = (a.data.monT||0)>0 ? Math.round((a.data.ms||0)/(a.data.monT||1)*100) : 0;
+    var rB = (b.data.monT||0)>0 ? Math.round((b.data.ms||0)/(b.data.monT||1)*100) : 0;
+    return rA - rB;
+  });
+
+  function toRgba(hex, alpha){
+    var r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+','+alpha+')';
+  }
+  var fmtMLocal = function(v){ return new Intl.NumberFormat('ko-KR').format(Math.round(v)); };
+  var colors    = LINE_COLORS;
+  var datasets  = [];
+
+  // 최종 목표선
+  datasets.push({
+    label:'최종 목표선', data:Array(TOTAL_DAYS).fill(Math.round(maxTargetM*10)/10),
+    stack:'ref_final', borderColor:'#ef4444', borderDash:[5,5], borderWidth:2,
+    fill:false, tension:0, pointRadius:0,
+    datalabels:{display:function(ctx){return ctx.dataIndex===TOTAL_DAYS-1;}, align:'right', anchor:'end', color:'#ef4444', font:{weight:700,size:9}, formatter:function(){return '최종목표';}}
+  });
+  // 목표 진행선
+  datasets.push({
+    label:'목표 진행선',
+    data:bizDays.map(function(_,i){return Math.round(maxTargetM*(i+1)/TOTAL_DAYS*10)/10;}),
+    stack:'ref_progress', borderColor:'#9ca3af', borderDash:[5,5], borderWidth:1.5,
+    fill:false, tension:0, pointRadius:0,
+    datalabels:{display:function(ctx){return ctx.dataIndex===TOTAL_DAYS-1;}, align:'right', anchor:'end', color:'#6b7280', font:{weight:600,size:9}, formatter:function(){return '진행목표';}}
+  });
+
+  sortedGroups.forEach(function(g, gi){
+    var color    = colors[gi % colors.length];
+    var dailyMap = dailyMapSource[String(g.code)] || {};
+    var cumSum   = 0;
+    var lineData = bizDays.map(function(b, i){
+      if (i > TODAY_IDX) return null;
+      cumSum += (dailyMap[b.dateStr]||0);
+      return Math.round(cumSum/1000000*10)/10;
+    });
+    var gLabel = g.label;
+    datasets.push({
+      label:gLabel, data:lineData, stack:'departments',
+      backgroundColor:toRgba(color,0.20), borderColor:color, fill:true, tension:0, borderWidth:2,
+      pointRadius:3, pointStyle:'circle', pointBackgroundColor:'#ffffff',
+      pointBorderColor:color, pointBorderWidth:2, pointHoverRadius:5,
+      datalabels:{
+        display:function(ctx){return ctx.dataIndex===TODAY_IDX;},
+        align:'right', anchor:'end', color:color, font:{weight:700,size:10},
+        formatter:function(){return gLabel.substring(0,5);}
+      }
+    });
+  });
+
+  var yMax = Math.ceil(maxTargetM*1.1/100)*100;
+  var ctx  = document.getElementById('chart-burnup').getContext('2d');
+  CHARTS.burnup = new Chart(ctx, {
+    type:'line', data:{labels:labels, datasets:datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{right:60}},
+      plugins:{
+        legend:{display:true, position:'bottom', reverse:true, labels:{font:{size:9},boxWidth:10,padding:6}},
+        tooltip:{mode:'index', intersect:false, callbacks:{label:function(ctx){
+          var v=ctx.parsed.y; if(v===null||v===undefined) return null;
+          return ctx.dataset.label+': '+fmtMLocal(v)+' 백만원';
+        }}},
+        datalabels:{}
+      },
+      scales:{
+        y:{stacked:true, min:0, max:yMax, ticks:{callback:function(v){return fmtMLocal(v)+'백만';}, font:{size:9}}, grid:{color:'#f3f4f6'}},
+        x:{ticks:{font:{size:8}, maxRotation:45, minRotation:45}, grid:{display:false}}
+      },
+      spanGaps:false, interaction:{mode:'index',intersect:false}, clip:false
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+// ============================================================
+// TOP/BOTTOM CARDS — team레벨: 공식 KPI 순위 기준, 나머지: 당월 달성률 기준
+// ============================================================
+function renderTopBottom(groups, level, deptCode, teamCode) {
+  var sorted;
+  if (level === 'team') {
+    // 담당자 레벨: managerKPI 공식 KPI 순위 기준 정렬 (낮을수록 우수)
+    sorted = groups
+      .filter(function(g){ return !String(g.code).match(/[9][89]$/); })
+      .map(function(g){
+        // 당월 순위가 아직 0이면 직전월로 fallback
+        var kpiRank = (MGR_KPI[g.code] && MGR_KPI[g.code][CURRENT_KPI_KEY_YEARLY]) || 0;
+        if (!kpiRank && MONTH_KEYS_YEARLY.length > 0) {
+          var prevYk = MONTH_KEYS_YEARLY[MONTH_KEYS_YEARLY.length - 1];
+          kpiRank = (MGR_KPI[g.code] && MGR_KPI[g.code][prevYk]) || 0;
+        }
+        var rate = Math.round((g.data.ms||0) / (g.data.monT||1) * 100);
+        return { label:g.label, rate:rate, kpiRank:kpiRank };
+      })
+      .filter(function(g){ return g.kpiRank > 0; })
+      .sort(function(a,b){ return a.kpiRank - b.kpiRank; });
+  } else {
+    sorted = groups
+      .filter(function(g){ return (g.data.monT||0) > 0; })
+      .map(function(g){ return { label:g.label, rate:Math.round((g.data.ms||0)/(g.data.monT||1)*100), kpiRank:0 }; })
+      .sort(function(a,b){ return b.rate - a.rate; });
+  }
+
+  var showCount  = level==='team' ? 1 : 3;
+  var top        = sorted.slice(0, showCount);
+  var bottomAll  = sorted.slice(-showCount).reverse();
+  var bottom     = bottomAll.filter(function(g){ return !top.some(function(t){ return t.label===g.label; }); });
+  if (!bottom.length) bottom = bottomAll;
+
+  var topTitle = level==='team' ? 'KPI 우수 담당자' : level==='dept' ? 'Top 달성팀' : 'Top 달성 영업부';
+  var btmTitle = level==='team' ? 'KPI 성장 기대 담당자' : level==='dept' ? '성장 기대팀' : '성장 기대 부서';
+  var medals   = ['🥇','🥈','🥉'];
+
+  function topRow(g, i) {
+    return '<div class="rank-row" style="background:'+(i===0?'#f0fdf4':i===1?'#f8fafc':'#fafafa')+';border:1px solid '+(i===0?'#bbf7d0':'#e5e7eb')+';">'
+      +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">'+medals[i]+'</span>'
+        +'<div><div style="font-size:13px;font-weight:700;color:#111827;">'+g.label+'</div>'
+        +'<div style="font-size:10px;color:#6b7280;">'+(i+1)+'위</div></div></div>'
+      +'<div style="font-size:18px;font-weight:800;color:#22c55e;">'+g.rate+'%</div></div>';
+  }
+  function btmRow(g) {
+    return '<div class="rank-row" style="background:#faf5ff;border:1px solid #e9d5ff;">'
+      +'<div style="display:flex;align-items:center;gap:8px;">'
+        +'<i class="fas fa-arrow-up" style="color:#a855f7;font-size:14px;"></i>'
+        +'<span style="font-size:13px;font-weight:700;color:#111827;">'+g.label+'</span>'
+      +'</div><div style="font-size:16px;font-weight:800;color:#a855f7;">'+g.rate+'%</div></div>';
+  }
+
+  var topHtml = '<div class="section-title"><i class="fas fa-trophy" style="color:#f59e0b;"></i><span>'+topTitle+'</span></div>';
+  if (top.length===1) {
+    var rankBadge = (level==='team' && top[0].kpiRank>0) ? '<div style="font-size:13px;color:#6b7280;margin-top:4px;">KPI '+top[0].kpiRank+'위 · 달성률 '+top[0].rate+'%</div>' : '<div style="font-size:32px;font-weight:900;color:#22c55e;margin-top:8px;">'+top[0].rate+'%</div>';
+    topHtml += '<div style="text-align:center;padding:20px 0;"><div style="font-size:32px;margin-bottom:8px;">🏆</div>'
+      +'<div style="font-size:20px;font-weight:800;color:#111827;">'+top[0].label+'</div>'
+      +rankBadge+'</div>';
+  } else { top.forEach(function(g,i){ topHtml += topRow(g,i); }); }
+
+  var btmHtml = '<div class="section-title"><i class="fas fa-seedling" style="color:#a855f7;"></i><span>'+btmTitle+'</span></div>';
+  if (bottom.length===1) {
+    var btmRankBadge = (level==='team' && bottom[0].kpiRank>0) ? '<div style="font-size:13px;color:#a855f7;margin-top:4px;">KPI '+bottom[0].kpiRank+'위 · 달성률 '+bottom[0].rate+'%</div>' : '<div style="font-size:32px;font-weight:900;color:#a855f7;margin-top:8px;">'+bottom[0].rate+'%</div>';
+    btmHtml += '<div style="text-align:center;padding:20px 0;"><div style="font-size:28px;font-weight:800;color:#a855f7;">포텐셜 달성</div>'
+      +'<div style="font-size:20px;font-weight:800;color:#111827;margin-top:8px;">'+bottom[0].label+'</div>'
+      +btmRankBadge+'</div>';
+  } else { bottom.forEach(function(g){ btmHtml += btmRow(g); }); }
+
+  document.getElementById('top-card-wrap').innerHTML  = topHtml;
+  document.getElementById('bottom-card-wrap').innerHTML = btmHtml;
+}
+
+// ============================================================
+// PRODUCT CHART (horizontal bar) ── 부문별 표시 품목 분기
+// ============================================================
+function renderProductsChart(level, deptCode, teamCode) {
+  // 당월 제품군별 실적(msCats) + 당월 목표(cats.t) 기준으로 표시
+  let msCatsData = {};  // { cat: 당월실적 }
+  let monTCatsData = {}; // { cat: 당월목표 }
+  let activeDeptCode = deptCode;
+
+  if (level === 'total') {
+    for (const dc in DEPT_SALES) {
+      const mc = DEPT_SALES[dc].msCats || {};
+      for (const cat in mc) { msCatsData[cat] = (msCatsData[cat] || 0) + mc[cat]; }
+      const tc2 = DEPT_SALES[dc].cats || {};
+      for (const cat in tc2) { monTCatsData[cat] = (monTCatsData[cat] || 0) + tc2[cat].t; }
+    }
+    activeDeptCode = null;
+  } else if (level === 'dept') {
+    msCatsData  = DEPT_SALES[deptCode]?.msCats || {};
+    const tc2   = DEPT_SALES[deptCode]?.cats || {};
+    for (const cat in tc2) monTCatsData[cat] = tc2[cat].t;
+  } else if (level === 'team') {
+    msCatsData  = TEAM_SALES[teamCode]?.msCats || {};
+    const tc2   = TEAM_SALES[teamCode]?.cats || {};
+    for (const cat in tc2) monTCatsData[cat] = tc2[cat].t;
+    activeDeptCode = TEAM_SALES[teamCode]?.deptCode || deptCode;
+  }
+
+  const SHOW_CATS = getDisplayCats(level, activeDeptCode);
+  const cats  = SHOW_CATS.filter(c => (msCatsData[c] || 0) !== 0 || (monTCatsData[c] || 0) > 0);
+  const rates = cats.map(c => fmtRate(monTCatsData[c] || 0, msCatsData[c] || 0));
+  const maxX  = Math.max(120, ...rates) + 8;
+
+  if (CHARTS.products) { try { CHARTS.products.destroy(); } catch(e){} }
+  const ctx = document.getElementById('chart-products').getContext('2d');
+  CHARTS.products = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cats,
+      datasets: [{
+        data: rates,
+        backgroundColor: cats.map(c => CAT_COLORS[c] || '#6b7280'),
+        borderRadius: 4,
+        datalabels: { anchor:'end', align:'end', color:'#374151', font:{weight:700,size:10}, formatter: v => v+'%' }
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ display:false }, datalabels:{} },
+      scales: {
+        x: { min:0, max:maxX, ticks:{callback:v=>v+'%',font:{size:9}}, grid:{color:'#f3f4f6'} },
+        y: { ticks:{font:{size:10}} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// ============================================================
+// COURSE CHARTS
+// ============================================================
+function renderCourseCharts(courseCode, teamCode, deptCode) {
+  if (!courseCode) return;
+
+  // ── 팀장 여부: TL_KPI 존재 기준 (코드 suffix 무관) ──────────
+  const isLeader = !!TL_KPI[courseCode];
+
+  // ── KPI 데이터 소스 결정 ──────────────────────────────────
+  // 팀장: TL_KPI 우선, 없으면 MGR_KPI 보완
+  // 담당자: MGR_KPI만 사용
+  const tlKpiData  = TL_KPI[courseCode] || {};
+  const mgrKpiData = MGR_KPI[courseCode] || {};
+
+  function getMonthRank(sk, yk) {
+    // 연도가 포함된 키(yk)만 사용하여 연도 혼용 방지
+    // 2025년 단순키("01월순위") 폴백을 제거하여 2025년 데이터가 2026년 그래프에 표시되는 오류 수정
+    function pick(src) { const yv = src[yk] || 0; return yv; }
+    const tl=pick(tlKpiData), mg=pick(mgrKpiData);
+    if (isLeader){const v=tl>0?tl:mg>0?mg:0; return v>0?v:null;}
+    return mg>0?mg:null;
+  }
+
+  // deptCode 확정
+  const resolvedDept = deptCode
+    || TEAM_SALES[teamCode]?.deptCode
+    || COURSE_SALES[courseCode]?.teamCode?.slice(0, 3)
+    || null;
+
+  // Territory Map
+  renderTerritoryMap(courseCode);
+
+  // ── KPI 순위 추이: 이전 6개월 (0=null 처리) ─────────────────
+  const ranks = MONTH_KEYS_PREV.map((k,i) => getMonthRank(k, MONTH_KEYS_YEARLY[i]));
+  const validRanks = ranks.filter(v => v !== null);
+
+  // 부문별 실제 인원 수 — 코스코드 앞3자리가 아닌 영업부 필드 기준으로 집계
+  const _deptCnt = {};
+  for (const _c in MGR_KPI) {
+    const _rec = MGR_KPI[_c];
+    if (!_rec._newMember) {
+      const _d = String(_rec['영업부'] || '').trim();
+      _deptCnt[_d] = (_deptCnt[_d] || 0) + 1;
+    }
+  }
+  const totalMembers = resolvedDept === '121'
+    ? (_deptCnt['121'] || 8)
+    : ((_deptCnt['111']||0)+(_deptCnt['112']||0)+(_deptCnt['113']||0)) || 113;
+
+  // y축 범위: 1위~totalMembers 전체를 항상 표시 → 라벨이 절대 잘리지 않음
+  const rankMin = validRanks.length ? Math.min(...validRanks) : 1;
+  const rankMax = validRanks.length ? Math.max(...validRanks) : 20;
+  // 위쪽(좋은 순위) 여유: 최소 5칸, 아래쪽(나쁜 순위) 여유: 최소 5칸
+  const yMin = Math.max(1, rankMin - 8);
+  const yMax = Math.min(totalMembers, rankMax + 8);
+
+  // chart-rank 기존 인스턴스 명시적 파괴
+  if (CHARTS.rank) { try { CHARTS.rank.destroy(); } catch(e){} CHARTS.rank = null; }
+  const ctxRank = document.getElementById('chart-rank').getContext('2d');
+
+  // 차트 제목 업데이트
+  const rankTitleEl = document.getElementById('rank-chart-title');
+  if (rankTitleEl) {
+    const _scopeLbl = resolvedDept === '121' ? '도매부' : 'OTC 전체';
+    rankTitleEl.textContent = `월별 KPI 순위(6개월) - ${_scopeLbl} ${totalMembers}명 중`;
+  }
+
+  CHARTS.rank = new Chart(ctxRank, {
+    type: 'line',
+    data: {
+      labels: MONTH_COLS,
+      datasets: [{
+        label: 'KPI 순위',
+        data: ranks,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.08)',
+        fill: true, tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointHoverRadius: 6,
+        spanGaps: false,
+        datalabels: {
+          // reverse 축: 숫자 작을수록 위 → anchor:'start'=포인트 위쪽(좋은 방향)
+          // 라벨을 항상 포인트 위(reverse축의 "좋은 순위 방향")에 배치
+          anchor: 'start',
+          align: 'end',
+          offset: 6,
+          color: '#1e40af',
+          backgroundColor: 'rgba(239,246,255,0.95)',
+          borderColor: '#93c5fd',
+          borderWidth: 1,
+          borderRadius: 3,
+          padding: { top: 1, bottom: 1, left: 4, right: 4 },
+          font: { weight: 700, size: 11 },
+          formatter: v => v !== null ? v + '위' : ''
+        }
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 30, bottom: 10, left: 4, right: 4 } },
+      plugins: {
+        legend: { display: false },
+        datalabels: {}
+      },
+      scales: {
+        y: {
+          reverse: true,
+          min: yMin,
+          max: yMax,
+          ticks: {
+            callback: v => v + '위',
+            font: { size: 10 },
+            maxTicksLimit: 8
+          },
+          grid: { color: '#f3f4f6' }
+        },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      },
+      animation: { duration: 400 }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  // 담당자 제품군 차트 ── 당월 기준 (msCats: 당월실적, cats.t: 당월목표)
+  const msCatsData  = COURSE_SALES[courseCode]?.msCats || {};
+  const monTCatsData = {};
+  const _ytdCats = COURSE_SALES[courseCode]?.cats || {};
+  for (const cat in _ytdCats) monTCatsData[cat] = _ytdCats[cat].t;
+
+  const SHOW_CATS = getDisplayCats('dept', resolvedDept);
+  const cats  = SHOW_CATS.filter(c => (msCatsData[c] || 0) > 0 || (monTCatsData[c] || 0) > 0);
+  const rates = cats.map(c => fmtRate(monTCatsData[c] || 0, msCatsData[c] || 0));
+
+  // 차트 제목 — 부문별 분기
+  const chartTitle = resolvedDept === '121'
+    ? '주요 제품군 달성률 (까스활명수·판콜·후시딘·큐립·기타)'
+    : ['111','112','113'].includes(resolvedDept)
+      ? '주요 제품군 달성률 (까스활명수·잇치·알보칠·큐립·세비타비)'
+      : '주요 제품군 달성률 현황';
+  document.getElementById('course-combo-title').textContent = chartTitle;
+
+  const ctxProd = document.getElementById('chart-course-products').getContext('2d');
+  CHARTS.courseProd = new Chart(ctxProd, {
+    type: 'bar',
+    data: {
+      labels: cats,
+      datasets: [{
+        data: rates,
+        backgroundColor: cats.map(c => CAT_COLORS[c] || '#6b7280'),
+        borderRadius: 4,
+        datalabels: { anchor:'end', align:'end', color:'#374151', font:{weight:700,size:10}, formatter: v => v+'%' }
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, datalabels:{} },
+      scales: {
+        x: { min:0, max:Math.max(130,...rates)+10, ticks:{callback:v=>v+'%',font:{size:9}}, grid:{color:'#f3f4f6'} },
+        y: { ticks:{font:{size:10}} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  const comboTitle = resolvedDept === '121'
+    ? '제품별 목표·실적·달성률 (도매)'
+    : '제품별 목표·실적·달성률 (약국)';
+  document.getElementById('course-combo-title').textContent = comboTitle;
+
+  const catTargets = cats.map(c => Math.round((monTCatsData[c] || 0) / 10000) / 100);
+  const catActuals = cats.map(c => Math.round((msCatsData[c]  || 0) / 10000) / 100);
+  const maxAmt  = Math.max(...catTargets, ...catActuals, 1) * 1.3;
+  const maxRate = Math.max(130, ...rates) + 15;
+
+  const ctxCombo = document.getElementById('chart-course-combo').getContext('2d');
+  CHARTS.courseCombo = new Chart(ctxCombo, {
+    type: 'bar',
+    data: {
+      labels: cats,
+      datasets: [
+        { label:'목표', type:'bar', data:catTargets, yAxisID:'yAmt',
+          backgroundColor:'#e5e7eb', borderRadius:4, datalabels:{display:false} },
+        { label:'실적', type:'bar', data:catActuals, yAxisID:'yAmt',
+          backgroundColor:cats.map(c=>CAT_COLORS[c]||'#6b7280'), borderRadius:4, datalabels:{display:false} },
+        { label:'달성률', type:'line', data:rates, yAxisID:'yRate',
+          borderColor:'#f59e0b', backgroundColor:'#f59e0b18', tension:0.3, fill:false,
+          pointRadius:5, pointBackgroundColor:rates.map(r=>r>=100?'#10b981':'#f59e0b'),
+          pointBorderColor:'white', pointBorderWidth:2, borderWidth:2,
+          datalabels:{ align:'top', color:ctx=>rates[ctx.dataIndex]>=100?'#059669':'#b45309',
+            font:{weight:700,size:10}, formatter:v=>v+'%' } }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:true, position:'bottom', labels:{font:{size:9},boxWidth:10,padding:8}}, datalabels:{} },
+      scales:{
+        yAmt:{ type:'linear', position:'left', min:0, max:maxAmt,
+          ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'B':v.toFixed(1)+'M',font:{size:9}}, grid:{color:'#f3f4f6'} },
+        yRate:{ type:'linear', position:'right', min:0, max:maxRate,
+          ticks:{callback:v=>v+'%',font:{size:9}}, grid:{display:false} },
+        x:{ ticks:{font:{size:10}} }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+// ============================================================
+// ============================================================
+// TERRITORY MAP ── 담당구역 맞춤형 지도 (GeoJSON 필터링 + 구/군 하이라이트)
+// ============================================================
+
+// ── 1. GeoJSON URL ──────────────────────────────────────────
+const MUNIC_GEOJSON_URL =
+  'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json';
+
+// ── 2. 시/도 코드 맵핑 ────────────────────────────────────────
+const SIDO_CODE = {
+  '서울':'11','부산':'21','대구':'22','인천':'23','광주':'24',
+  '대전':'25','울산':'26','세종':'29',
+  '경기':'31','강원':'32','충북':'33','충남':'34',
+  '전북':'35','전남':'36','경북':'37','경남':'38','제주':'39'
+};
+
+// ── 3. 담당지역 문자열 파싱 ──────────────────────────────────
+//   "서울(마포구, 서대문구), 경기(고양시)" → { sidoKeys, districts }
+function parseTerritoryStr(raw) {
+  if (!raw) return { sidoKeys: [], districts: [], raw: '' };
+
+  const sidoKeys = new Set();
+  const districts = new Set();
+
+  // 패턴 A: "도시(구1, 구2)" 반복
+  const patA = /([가-힣]+)\(([^)]+)\)/g;
+  let match;
+  while ((match = patA.exec(raw)) !== null) {
+    const sido = match[1].trim();
+    sidoKeys.add(sido);
+    match[2].split(/[,，、\s]+/).map(s => s.trim()).filter(Boolean)
+      .forEach(d => districts.add(d));
+  }
+
+  // 패턴 B: 괄호 없는 순수 도시명 (예: "세종시, 충북(청주시)")
+  const noParenParts = raw.replace(/[가-힣]+\([^)]+\)/g, '').split(/[,，\s]+/);
+  noParenParts.map(s => s.trim()).filter(Boolean).forEach(s => {
+    // 단순 시/도 키워드인지 확인
+    for (const key of Object.keys(SIDO_CODE)) {
+      if (s.startsWith(key)) { sidoKeys.add(key); break; }
+    }
+  });
+
+  return {
+    sidoKeys: [...sidoKeys],
+    districts: [...districts],
+    raw
+  };
+}
+
+// ── 4. GeoJSON 캐시 로드 ────────────────────────────────────
+function loadGeoJSONCache(url) {
+  const key = '__geo__' + url.slice(-40);
+  if (window[key]) return Promise.resolve(window[key]);
+  return fetch(url)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { window[key] = d; return d; });
+}
+
+// ── 5. GeoJSON 필터링 (해당 시/도 폴리곤만) ──────────────────
+function filterGeoJSON(geoJson, sidoKeys) {
+  const codes = sidoKeys.map(k => SIDO_CODE[k]).filter(Boolean);
+  if (!codes.length) return geoJson; // 코드 없으면 전체
+  const filtered = {
+    ...geoJson,
+    features: (geoJson.features || []).filter(f => {
+      const code = String(f.properties?.code || f.properties?.CODE || '');
+      return codes.some(c => code.startsWith(c));
+    })
+  };
+  // 필터 결과가 없으면 전체 반환
+  return filtered.features.length ? filtered : geoJson;
+}
+
+// ── 6. 구/군명 매칭 함수 (다양한 표기 대응) ──────────────────
+function matchDistrict(geoName, districts) {
+  const clean = n => n.replace(/특별시|광역시|특별자치시|특별자치도|도$/, '').trim();
+  const gClean = clean(geoName);
+  return districts.some(d => {
+    const dClean = clean(d);
+    return gClean === dClean || gClean.includes(dClean) || dClean.includes(gClean);
+  });
+}
+
+// ── 7. Fallback: 배지 카드 UI ────────────────────────────────
+function renderTerritoryFallback(container, parsed) {
+  const { sidoKeys, districts, raw } = parsed;
+  const items = districts.length ? districts : sidoKeys.length ? sidoKeys : [raw || '정보 없음'];
+  container.innerHTML = `
+    <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;gap:10px;">
+      <div style="display:flex;align-items:center;gap:6px;color:#64748b;font-size:12px;font-weight:600;">
+        <i class="fas fa-map-marked-alt" style="color:#3b82f6;font-size:16px;"></i>
+        담당 구역
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">
+        ${items.map(d => `
+          <span style="
+            display:inline-flex;align-items:center;gap:4px;
+            background:#eff6ff;color:#1d4ed8;
+            border:1px solid #bfdbfe;border-radius:20px;
+            padding:4px 12px;font-size:11px;font-weight:700;
+          ">
+            <i class="fas fa-map-pin" style="font-size:9px;"></i>${d}
+          </span>`).join('')}
+      </div>
+      ${raw ? `<div style="font-size:10px;color:#94a3b8;margin-top:4px;">${raw}</div>` : ''}
+    </div>`;
+}
+
+// ── 8. 메인: renderTerritoryMap ───────────────────────────────
+function renderTerritoryMap(courseCode) {
+  const territoryStr = TERRITORY_MAP[courseCode] || '';
+  const mapEl = document.getElementById('territory-map');
+
+  // 기존 ECharts 인스턴스 정리
+  if (window._ecMap) { try { window._ecMap.dispose(); } catch(e){} window._ecMap = null; }
+
+  // 구역 없음
+  if (!territoryStr) {
+    mapEl.innerHTML = `
+      <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#94a3b8;">
+        <i class="fas fa-map" style="font-size:32px;"></i>
+        <div style="font-size:13px;font-weight:500;">담당 구역 정보 없음</div>
+      </div>`;
+    return;
+  }
+
+  const parsed = parseTerritoryStr(territoryStr);
+
+  // 컨테이너 초기화 (로딩 스피너)
+  mapEl.innerHTML = `
+    <div id="map-canvas" style="height:100%;width:100%;border-radius:8px;"></div>`;
+
+  loadGeoJSONCache(MUNIC_GEOJSON_URL)
+    .then(fullGeo => {
+      const filteredGeo = filterGeoJSON(fullGeo, parsed.sidoKeys);
+      const el = document.getElementById('map-canvas');
+      if (!el) return;
+
+      // 필터 결과 feature 이름 목록
+      const features = filteredGeo.features || [];
+      const geoNames = features.map(f =>
+        f.properties?.NAME_KOR || f.properties?.name ||
+        f.properties?.SIG_KOR_NM || f.properties?.sigungu_nm || ''
+      );
+
+      // 담당 구역 값 세팅
+      const mapData = geoNames.map(name => ({
+        name,
+        value: matchDistrict(name, parsed.districts) ? 1 : 0
+      }));
+
+      // 매칭된 구역이 하나도 없으면 fallback
+      const hasMatch = mapData.some(d => d.value === 1);
+      if (!hasMatch && parsed.districts.length > 0) {
+        renderTerritoryFallback(mapEl, parsed);
+        return;
+      }
+
+      // ECharts 렌더링
+      const mapKey = 'territory_' + courseCode;
+      try { echarts.getMap(mapKey); } catch(e) {}
+      echarts.registerMap(mapKey, filteredGeo);
+
+      const chart = echarts.init(el);
+      window._ecMap = chart;
+
+      chart.setOption({
+        backgroundColor: 'transparent',
+
+        // ── 툴팁 ────────────────────────────────────────────
+        tooltip: {
+          trigger: 'item',
+          enterable: false,
+          confine: true,
+          formatter(params) {
+            const isAssigned = params.value === 1;
+            return isAssigned
+              ? `<div style="font-size:12px;font-weight:700;color:#1d4ed8;line-height:1.8;">
+                   ${params.name}<br/>
+                   <span style="color:#16a34a;font-size:11px;">
+                     <i class="fas fa-check-circle"></i> 담당 구역
+                   </span>
+                 </div>`
+              : `<div style="font-size:12px;color:#64748b;">${params.name}</div>`;
+          }
+        },
+
+        // ── visualMap ────────────────────────────────────────
+        visualMap: {
+          show: false,
+          min: 0, max: 1,
+          inRange: { color: ['#e2e8f0', '#3b82f6'] }
+        },
+
+        // ── 지도 시리즈 ──────────────────────────────────────
+        series: [{
+          type: 'map',
+          map: mapKey,
+          roam: true,
+          scaleLimit: { min: 0.8, max: 20 },
+
+          // 기본 스타일
+          itemStyle: {
+            borderColor: '#ffffff',
+            borderWidth: 1.5
+          },
+
+          // 라벨: 담당 구역(value=1)만 흰색 글씨 + 짙은 파란 테두리
+          label: {
+            show: true,
+            formatter(params) {
+              return params.value === 1 ? params.name : '';
+            },
+            color: '#ffffff',
+            fontSize: 10,
+            fontWeight: 700,
+            textBorderColor: '#1e3a8a',
+            textBorderWidth: 2
+          },
+
+          // 호버 강조
+          emphasis: {
+            itemStyle: { areaColor: '#93c5fd' },
+            label: {
+              show: true,
+              color: '#0f172a',
+              fontSize: 11,
+              fontWeight: 700,
+              textBorderColor: 'transparent',
+              textBorderWidth: 0
+            }
+          },
+
+          // 선택 비활성화
+          select: { disabled: true },
+
+          data: mapData
+        }]
+      });
+
+      // 리사이즈 대응
+      const ro = new ResizeObserver(() => chart.resize());
+      ro.observe(el);
+    })
+    .catch(() => renderTerritoryFallback(mapEl, parsed));
+}
+
+function parseProvinces(territory) {
+  // legacy shim — parseProvinces는 이제 사용 안 하지만 호출부 보호
+  if (!territory) return [];
+  const provinces = new Set();
+  for (const [short] of Object.entries(PROV_MAP)) {
+    if (territory.includes(short)) provinces.add(PROV_MAP[short]);
+  }
+  return [...provinces];
+}
+
+
+// ============================================================
+// ANALYSIS SECTION  ── OTC부문 / 영업부 / 영업팀 / 담당자별 차별 분석
+// ============================================================
+function renderAnalysis(level, deptCode, teamCode, courseCode) {
+  const el = document.getElementById('analysis-section');
+  const titleEl = document.getElementById('analysis-title');
+  const cardsEl = document.getElementById('analysis-cards');
+  el.style.display = 'block';
+
+  // 달성률 기준 상태 라벨
+  function rateLabel(r) {
+    if (r >= 100) return { txt:'목표 초과 달성 🎉', color:'#059669' };
+    if (r >= 90)  return { txt:'순조로운 달성 진행 ✅', color:'#16a34a' };
+    if (r >= 75)  return { txt:'양호한 진행 중 📈', color:'#6366f1' };
+    if (r >= 50)  return { txt:'성장 가속 필요 ⚡', color:'#f59e0b' };
+    return { txt:'집중 관리 필요 🔥', color:'#ef4444' };
+  }
+  function msRate(d) { var monT=(d.monT||0); return monT>0?Math.round((d.ms||0)/monT*100):0; }
+
+  const render = (cards) => {
+    cardsEl.innerHTML = cards.map(ins => `
+      <div class="analysis-card" style="background:${ins.bg};border:1px solid ${ins.border};">
+        <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <i class="fas ${ins.icon}" style="color:${ins.color};"></i> ${ins.title}
+        </div>
+        <div style="font-size:12px;line-height:1.7;color:#4b5563;">${ins.text}</div>
+      </div>`).join('');
+  };
+
+  if (level === 'course' && courseCode) {
+    // ── 담당자(코스) ────────────────────────────────────────
+    const data = COURSE_SALES[courseCode] || {t:0,s:0,ms:0};
+    const rate = msRate(data);
+    const name = HIRE_MAP[courseCode]?.name || '담당자';
+    const rl   = rateLabel(rate);
+    const gap  = Math.abs(data.t - (data.ms||0));
+    const isOver = (data.ms||0) >= data.t;
+
+    // 팀 내 순위
+    const myTeam = COURSE_SALES[courseCode]?.teamCode;
+    const peers = myTeam
+      ? Object.keys(COURSE_SALES)
+          .filter(cc => COURSE_SALES[cc].teamCode === myTeam && COURSE_SALES[cc].t > 0)
+          .map(cc => ({ cc, rate: msRate(COURSE_SALES[cc]) }))
+          .sort((a,b) => b.rate - a.rate)
+      : [];
+    const myRankIdx = peers.findIndex(m => m.cc === String(courseCode));
+    const myRank = myRankIdx >= 0 ? myRankIdx + 1 : null;
+
+    // 주력 품목
+    const cats = COURSE_SALES[courseCode]?.cats || {};
+    const topCat = Object.entries(cats).filter(([,v])=>v.s>0).sort((a,b)=>b[1].s-a[1].s)[0];
+
+    titleEl.textContent = `${name} 담당자 상세 분석`;
+    render([
+      { icon: rate>=90?'fa-star':rate>=70?'fa-chart-line':'fa-fire',
+        color: rl.color,
+        title: `${name} 달성 현황 — ${rl.txt}`,
+        bg: rate>=90?'#fffbeb':rate>=70?'#eff6ff':'#fff7ed',
+        border: rate>=90?'#fde68a':rate>=70?'#bfdbfe':'#fed7aa',
+        text: `당월 달성률 ${rate}%로 ${rl.txt.replace(/[🎉✅📈⚡🔥]/g,'').trim()} 상태입니다. `
+          + (isOver
+            ? `목표 대비 ${fmt(gap)} 백만원 초과 달성하여 팀 실적을 견인하고 있습니다.`
+            : `잔여 목표 ${fmt(gap)} 백만원 달성을 위해 핵심 거래처 집중 공략이 필요합니다.`)
+          + ` (2026 YTD 누계: ${fmt(data.s||0)} 백만원)` },
+      { icon:'fa-medal', color:'#6366f1', title:'팀 내 포지셔닝',
+        bg:'#eef2ff', border:'#c7d2fe',
+        text: myRank !== null
+          ? `팀 내 ${peers.length}명 중 ${myRank}위입니다. `
+            + (myRank===1?'팀을 대표하는 에이스로서 성공 노하우를 후배와 공유해 주세요.'
+              :myRank<=Math.ceil(peers.length/2)?'상위권을 유지하며 안정적으로 성과를 쌓고 있습니다.'
+              :'방문 빈도 제고와 신규 고객 발굴로 순위 향상을 도모하세요.')
+          : '팀 내 순위 데이터를 집계 중입니다.' },
+      { icon:'fa-pills', color:'#10b981', title:'주력 품목 분석',
+        bg:'#f0fdf4', border:'#bbf7d0',
+        text: topCat
+          ? `${topCat[0]} 품목이 YTD 실적의 핵심 동력(${fmtRate(topCat[1].t,topCat[1].s)}% 달성)입니다. 육성 품목 크로스셀링으로 포트폴리오를 다각화하면 전체 실적 향상을 기대할 수 있습니다.`
+          : '품목별 데이터를 분석 중입니다. 다양한 제품군 균형 판매로 실적 안정화를 도모하세요.' }
+    ]);
+
+  } else if (level === 'team' && teamCode) {
+    // ── 영업팀 ─────────────────────────────────────────────
+    const tName = ORGTREE[deptCode]?.teams[teamCode]?.name || '팀';
+    const data  = TEAM_SALES[teamCode] || {t:0,s:0,ms:0};
+    const rate  = msRate(data);
+    const rl    = rateLabel(rate);
+
+    const team = ORGTREE[deptCode]?.teams[teamCode];
+    const members = (team?.courses||[])
+      .filter(c => c.role!=='팀장' && !String(c.code).match(/98$/))
+      .map(c => ({ name:c.name, code:c.code, rate:msRate(COURSE_SALES[c.code]||{t:0,s:0,ms:0}) }))
+      .sort((a,b) => b.rate-a.rate);
+    const top1    = members[0];
+    const growth1 = members[members.length-1];
+    const avgRate = members.length ? Math.round(members.reduce((s,m)=>s+m.rate,0)/members.length) : rate;
+
+    titleEl.textContent = `${tName} 상세 분석`;
+    render([
+      { icon:'fa-chart-bar', color:'#3b82f6', title:`${tName} 당월 달성 현황 — ${rl.txt}`,
+        bg:'#eff6ff', border:'#bfdbfe',
+        text:`팀 전체 당월 달성률 ${rate}% (팀원 평균 ${avgRate}%). `
+          + (rate>=avgRate?'팀장 리더십과 팀원들의 고른 성과가 팀 실적을 견인하고 있습니다.'
+            :'일부 담당자 집중 지원을 통해 팀 전체 실적 향상이 기대됩니다.')
+          + ` 2026 YTD 누계: ${fmt(data.s||0)} 백만원.` },
+      { icon:'fa-crown', color:'#22c55e', title:`에이스 — ${top1?.name||'-'}`,
+        bg:'#f0fdf4', border:'#bbf7d0',
+        text: top1
+          ? `${top1.name}님이 당월 ${top1.rate}%로 팀 내 최고 달성률을 기록 중입니다. 적극적인 고객 접촉과 핵심 품목 집중 전략이 우수 성과의 원동력입니다. 성공 사례를 팀 내 공유하여 전체 레벨업을 기대합니다.`
+          : '팀원 데이터를 집계 중입니다.' },
+      { icon:'fa-seedling', color:'#a855f7', title:`성장 기대 — ${growth1?.name||'-'}`,
+        bg:'#faf5ff', border:'#e9d5ff',
+        text: growth1&&growth1.name!==top1?.name
+          ? `${growth1.name}님(당월 ${growth1.rate}%)은 집중 지원이 필요합니다. 방문 강화·핵심 거래처 집중·동행 영업을 통해 실적 반등을 기대합니다.`
+          : '전원이 고른 성과를 보이는 균형 잡힌 팀 운영 중입니다.' }
+    ]);
+
+  } else if (level === 'dept' && deptCode) {
+    // ── 영업부 ─────────────────────────────────────────────
+    const dName = DEPT_META[deptCode] || deptCode;
+    const data  = DEPT_SALES[deptCode] || {t:0,s:0,ms:0};
+    const rate  = msRate(data);
+    const rl    = rateLabel(rate);
+
+    const dept = ORGTREE[deptCode];
+    const teamRanks = dept
+      ? Object.keys(dept.teams).map(tc => ({
+          name: dept.teams[tc].name,
+          rate: msRate(TEAM_SALES[tc]||{t:0,s:0,ms:0})
+        })).sort((a,b)=>b.rate-a.rate)
+      : [];
+    const topTeam    = teamRanks[0];
+    const growthTeam = teamRanks[teamRanks.length-1];
+
+    titleEl.textContent = `${dName} 상세 분석`;
+    render([
+      { icon:'fa-chart-line', color:'#3b82f6', title:`${dName} 당월 달성 현황 — ${rl.txt}`,
+        bg:'#eff6ff', border:'#bfdbfe',
+        text:`${dName} 당월 달성률 ${rate}%. `
+          + (deptCode==='121'?'도매 채널은 대형 거래 성사 시 급격한 실적 상승이 가능합니다. 주요 거래처 관계 강화와 프로모션 활용이 핵심입니다.'
+            :`총 ${teamRanks.length}개 팀이 목표를 향해 영업 중입니다. 팀 간 격차 해소를 통한 균형 성장이 중요합니다.`)
+          + ` 2026 YTD 누계: ${fmt(data.s||0)} 백만원.` },
+      { icon:'fa-trophy', color:'#f59e0b', title:`리딩팀 — ${topTeam?.name||'-'}`,
+        bg:'#fffbeb', border:'#fde68a',
+        text: topTeam
+          ? `${topTeam.name}이 당월 ${topTeam.rate}%로 ${dName} 내 최고 달성률입니다. 우수 영업 사례를 부 내 전파하여 전체 팀의 성과 레벨업에 활용하는 것을 권장합니다.`
+          : '팀별 데이터 집계 중입니다.' },
+      { icon:'fa-seedling', color:'#a855f7', title:`성장 기대팀 — ${growthTeam?.name||'-'}`,
+        bg:'#faf5ff', border:'#e9d5ff',
+        text: growthTeam&&growthTeam.name!==topTeam?.name
+          ? `${growthTeam.name}(당월 ${growthTeam.rate}%)은 집중 지원이 필요합니다. 동행 영업·핵심 거래처 재방문·육성 품목 침투 강화를 통한 실적 반등을 기대합니다.`
+          : '전체 팀이 균등한 성과로 안정적인 부 운영 중입니다.' }
+    ]);
+
+  } else {
+    // ── OTC부문 전체 ────────────────────────────────────────
+    const rate  = msRate(OTC_TOT);
+    const rl    = rateLabel(rate);
+    const isOver = (OTC_TOT.ms||0) >= OTC_TOT.t;
+
+    const deptRanks = DEPT_ORDER.filter(dc=>DEPT_SALES[dc]?.t>0)
+      .map(dc=>({ name:DEPT_DISPLAY[dc]||dc, code:dc, rate:msRate(DEPT_SALES[dc]||{t:0,s:0,ms:0}) }))
+      .sort((a,b)=>b.rate-a.rate);
+    const topDept    = deptRanks[0];
+    const growthDept = deptRanks[deptRanks.length-1];
+
+    const d1r = msRate(DEPT_SALES['111']||{t:0,s:0,ms:0});
+    const d2r = msRate(DEPT_SALES['112']||{t:0,s:0,ms:0});
+    const d3r = msRate(DEPT_SALES['113']||{t:0,s:0,ms:0});
+    const dmr = msRate(DEPT_SALES['121']||{t:0,s:0,ms:0});
+
+    titleEl.textContent = 'OTC부문 종합 분석';
+    render([
+      { icon:'fa-chart-line', color:'#3b82f6', title:`OTC부문 당월 달성 현황 — ${rl.txt}`,
+        bg:'#eff6ff', border:'#bfdbfe',
+        text:`OTC부문 당월 달성률 ${rate}%. 영업1부 ${d1r}% · 영업2부 ${d2r}% · 영업3부 ${d3r}% · 도매부 ${dmr}%. `
+          + (isOver?'전사 합산 목표를 초과하며 우수한 영업력을 입증하고 있습니다.'
+            :'월말까지 전 부서의 집중 영업이 필요합니다.')
+          + ` 2026 YTD 누계: ${fmt(OTC_TOT.s||0)} 백만원.` },
+      { icon:'fa-trophy', color:'#f59e0b', title:`리딩 영업부 — ${topDept?.name||'-'}`,
+        bg:'#fffbeb', border:'#fde68a',
+        text: topDept
+          ? `${topDept.name}이 당월 ${topDept.rate}%로 OTC부문 최고 달성률입니다. 핵심 고객 밀착 영업과 우수한 팀워크가 리딩 부서의 원동력이며, 성공 사례를 타 부서에 전파할 것을 권장합니다.`
+          : '부별 데이터 집계 중입니다.' },
+      { icon:'fa-seedling', color:'#a855f7', title:`성장 기대 — ${growthDept?.name||'-'}`,
+        bg:'#faf5ff', border:'#e9d5ff',
+        text: growthDept&&growthDept.name!==topDept?.name
+          ? `${growthDept.name}(당월 ${growthDept.rate}%)은 추가 성장 여력이 있습니다. `
+            + (growthDept.code==='121'?'도매 채널 특성상 대형 거래처 발굴·대량 주문 유치가 핵심입니다.'
+              :'방문 강도 제고와 육성 품목 침투 확대로 적극적인 실적 만회를 기대합니다.')
+          : '전체 영업부가 균등하게 목표를 달성하며 OTC부문이 안정적으로 운영되고 있습니다.' }
+    ]);
+  }
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportDashboard() {
+  window.print();
+}
+
+// ============================================================
+// LOAD & RUN
+// data.js / images.js 는 이 script 블록 닫힌 후 body 맨 끝에서 로드됨
+// → 모든 함수(init 포함)가 정의된 뒤 data.js 실행 → data.js 끝에서 init() 호출
+// ============================================================
+</script>
+
+<!-- data.js / data.js.gz / images.js 동적 로드: 로딩 메시지 표시 후 순서대로 로드 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script>
+(function() {
+  // 로딩 오버레이 생성
+  var overlay = document.createElement('div');
+  overlay.id = 'data-loading-overlay';
+  overlay.style.cssText = [
+    'position:fixed','inset:0','background:rgba(15,23,42,0.75)',
+    'z-index:9990','display:flex','flex-direction:column',
+    'align-items:center','justify-content:center','gap:16px'
+  ].join(';');
+  overlay.innerHTML = [
+    '<div style="width:48px;height:48px;border:4px solid rgba(255,255,255,.2);',
+    'border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite;"></div>',
+    '<div style="color:white;font-size:15px;font-weight:600;letter-spacing:-.3px;">데이터 로딩 중…</div>',
+    '<div style="color:rgba(255,255,255,.5);font-size:12px;">잠시 기다려주세요 (최초 로드 시 수초 소요)</div>'
+  ].join('');
+  document.body.appendChild(overlay);
+
+  function removeOverlay() {
+    var el = document.getElementById('data-loading-overlay');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(function(){el.remove();},300); }
+  }
+
+  // images.js 로드
+  function loadImages() {
+    var s = document.createElement('script');
+    s.src = 'images.js';
+    s.onload = function() { removeOverlay(); };
+    s.onerror = function() { removeOverlay(); };
+    document.body.appendChild(s);
+  }
+
+  function runInit() {
+    if (typeof init === 'function' && window.DASHBOARD_DATA) {
+      try { init(); } catch(e) {
+        removeOverlay();
+        var msg = '대시보드 초기화 오류\n\n' + e.message;
+        if (e.stack) msg += '\n\n' + e.stack.split('\n').slice(0,4).join('\n');
+        alert(msg);
+        return false;
+      }
+    }
+    loadImages();
+    return true;
+  }
+
+  // data.js.gz (압축) 로드 시도 → 실패하면 data.js (비압축) 로드
+  function loadCompressed() {
+    fetch('data.js.gz')
+      .then(function(res) {
+        if (!res.ok) throw new Error('gz not found');
+        return res.arrayBuffer();
+      })
+      .then(function(buf) {
+        var decompressed = pako.ungzip(new Uint8Array(buf), { to: 'string' });
+        var script = document.createElement('script');
+        script.textContent = decompressed;
+        document.head.appendChild(script);
+        runInit();
+      })
+      .catch(function() {
+        loadPlain();
+      });
+  }
+
+  // data.js (비압축) 로드
+  function loadPlain() {
+    var s = document.createElement('script');
+    s.src = 'data.js';
+    s.onload = function() { runInit(); };
+    s.onerror = function() {
+      removeOverlay();
+      alert('data.js 로드 실패.\n파일이 같은 폴더에 있는지 확인하세요.');
+    };
+    document.body.appendChild(s);
+  }
+
+  // data.js.gz 우선 시도 (없으면 data.js 로드)
+  loadCompressed();
+})();
+</script>
+</body>
+</html>
