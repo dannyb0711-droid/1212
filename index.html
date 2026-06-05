@@ -867,23 +867,31 @@ function renderNav3(teamCode) {
   const inner = document.getElementById('nav3');
   wrap.style.display = 'block';
 
-  // 팀장 식별: orgChart 직책='팀장' 우선 → TL_BY_TEAM 보조
-  const leaderCourseObj = team.courses.find(c => c.role === '팀장');
-  const tlRecord        = TL_BY_TEAM[teamCode];
+  // ── 도매부(121) 단독팀 판별 ──────────────────────────────
+  // 대전/광주/부산/대구 도매팀: 구성원 1명이 orgChart상 '팀장'으로 등록되어 있지만
+  // 실제 조직상 서울도매팀 안병욱 팀장 산하 팀원이므로 팀원으로 표시
+  const isWholesaleSingleTeam = (deptCode === '121') &&
+    team.courses.filter(c => !String(c.code).match(/[9][89]$/)).length === 1;
+
+  // 팀장 식별: 단독 도매팀은 팀장 없음으로 처리
+  const leaderCourseObj = isWholesaleSingleTeam ? null : team.courses.find(c => c.role === '팀장');
+  const tlRecord        = isWholesaleSingleTeam ? null : TL_BY_TEAM[teamCode];
   const leaderCode      = leaderCourseObj?.code || tlRecord?.코스;
   const leaderCourse    = leaderCode
     ? team.courses.find(c => String(c.code) === String(leaderCode))
     : null;
 
-  // 팀원 카드 (팀장 코드 및 98/99코스 제외 — 팀장 임시 활동 코스)
+  // 팀원 카드 (98/99코스 제외)
+  // 단독 도매팀은 직책 무관하게 전원 팀원으로 표시
   const courses = team.courses.filter(c =>
-    c.role !== '팀장' && !String(c.code).match(/[9][89]$/)
+    !String(c.code).match(/[9][89]$/) &&
+    (isWholesaleSingleTeam || c.role !== '팀장')
   );
 
   inner.innerHTML = courses.map((c, i) => {
     const kpi  = MGR_KPI[c.code];
-    // 직위(매니저/파트너)를 orgChart에서 직접 표시; 없으면 KPI 직책 사용
-    const displayPos = c.position || (kpi ? kpi['직책'] : '');
+    // 단독 도매팀은 '팀원', 그 외는 orgChart 직위 → KPI 직책 순으로 표시
+    const displayPos = isWholesaleSingleTeam ? '팀원' : (c.position || (kpi ? kpi['직책'] : ''));
     return `
       <div class="course-card ${STATE.courseCode===String(c.code)?'active':''}" onclick="selectLevel('course','${deptCode}','${teamCode}','${c.code}')">
         <div class="avatar">${getAvatar(c.code, 44)}</div>
@@ -1070,18 +1078,32 @@ function renderHRCard(level, deptCode, teamCode, courseCode) {
   if (level === 'course') {
     personCode   = courseCode;
     // 팀장 여부: orgChart 직책='팀장' 기준 (TL_KPI 보조)
+    // 단, 도매부 단독팀(대전/광주/부산/대구)은 팀원으로 처리
     const team   = ORGTREE[deptCode]?.teams[teamCode];
     const orgC   = team?.courses.find(c => String(c.code) === String(courseCode));
-    isTeamLeader = (orgC?.role === '팀장') || !!TL_KPI[courseCode];
+    const isWholesaleSingleTeam = (deptCode === '121') &&
+      (team?.courses.filter(c => !String(c.code).match(/[9][89]$/)).length === 1);
+    isTeamLeader = !isWholesaleSingleTeam && ((orgC?.role === '팀장') || !!TL_KPI[courseCode]);
   } else if (level === 'team' || level === 'dept') {
     if (teamCode) {
-      // 팀장 코드: orgChart 직책='팀장' 우선 → TL_BY_TEAM → 98/99 suffix 순서로 fallback
       const team       = ORGTREE[deptCode]?.teams[teamCode];
-      const leaderFromOrg = team?.courses.find(c => c.role === '팀장');
-      const tlByTeam   = TL_BY_TEAM[teamCode];
-      const legacyLeader = team?.courses.find(c => String(c.code).match(/[9][89]$/));
-      personCode   = leaderFromOrg?.code || tlByTeam?.코스 || legacyLeader?.code;
-      isTeamLeader = true;
+      // 도매부 단독팀(대전/광주/부산/대구): 구성원 1명 → 팀원으로 표시
+      const isWholesaleSingleTeam = (deptCode === '121') &&
+        (team?.courses.filter(c => !String(c.code).match(/[9][89]$/)).length === 1);
+
+      if (isWholesaleSingleTeam) {
+        // 팀원(단독 담당자) 카드로 표시, isTeamLeader=false
+        const member = team.courses.find(c => !String(c.code).match(/[9][89]$/));
+        personCode   = member?.code;
+        isTeamLeader = false;
+      } else {
+        // 일반 팀: 팀장 코드 표시
+        const leaderFromOrg = team?.courses.find(c => c.role === '팀장');
+        const tlByTeam   = TL_BY_TEAM[teamCode];
+        const legacyLeader = team?.courses.find(c => String(c.code).match(/[9][89]$/));
+        personCode   = leaderFromOrg?.code || tlByTeam?.코스 || legacyLeader?.code;
+        isTeamLeader = true;
+      }
     } else {
       el.style.display = 'none'; return;
     }
