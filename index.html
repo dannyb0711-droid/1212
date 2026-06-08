@@ -1489,12 +1489,18 @@ function renderProductsChart(level, deptCode, teamCode) {
 function renderCourseCharts(courseCode, teamCode, deptCode) {
   if (!courseCode) return;
 
-  // ── 팀장 여부: TL_KPI 존재 기준 (코드 suffix 무관) ──────────
-  const isLeader = !!TL_KPI[courseCode];
+  // ── 도매부 단독팀(대전/광주/부산/대구) 여부 판별 ──────────────
+  // 이 경우 orgChart상 직책='팀장'이어도 팀원으로 처리
+  const _team4Chart = teamCode ? ORGTREE[deptCode || STATE.deptCode]?.teams[teamCode] : null;
+  const isWholesaleSingleTeam = (deptCode === '121' || STATE.deptCode === '121') &&
+    (_team4Chart?.courses.filter(c => !String(c.code).match(/[9][89]$/)).length === 1);
+
+  // ── 팀장 여부: TL_KPI 존재 기준 + 단독 도매팀 제외 ──────────
+  const isLeader = !isWholesaleSingleTeam && !!TL_KPI[courseCode];
 
   // ── KPI 데이터 소스 결정 ──────────────────────────────────
   // 팀장: TL_KPI 우선, 없으면 MGR_KPI 보완
-  // 담당자: MGR_KPI만 사용
+  // 담당자(단독 도매팀 포함): MGR_KPI만 사용
   const tlKpiData  = TL_KPI[courseCode] || {};
   const mgrKpiData = MGR_KPI[courseCode] || {};
 
