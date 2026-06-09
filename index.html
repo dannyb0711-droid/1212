@@ -727,7 +727,7 @@ function computeAggregates(D) {
 
     var ddc  = String(dr['매출 부']   || dr['영업부']   || '');
     var dtc  = String(dr['매출 팀']   || dr['영업팀']   || '');
-    var dcc  = String(dr['매출 코스'] || dr['실적코스'] || '');
+    var dcc  = String(dr['매출 코스'] || dr['실적코스'] || dr['관리코드1'] || '');
     var amt  = dr['정가'] || 0;
     var pg   = String(dr['제품군'] || '');
 
@@ -736,18 +736,20 @@ function computeAggregates(D) {
     if (dtc) { if (!DAILY_BY_TEAM[dtc]) DAILY_BY_TEAM[dtc]={}; DAILY_BY_TEAM[dtc][dateStr]=(DAILY_BY_TEAM[dtc][dateStr]||0)+amt; }
     if (dcc) { if (!DAILY_BY_COURSE[dcc]) DAILY_BY_COURSE[dcc]={}; DAILY_BY_COURSE[dcc][dateStr]=(DAILY_BY_COURSE[dcc][dateStr]||0)+amt; }
 
-    if (!cma && dateStr.startsWith(curMonthPfx)) {
-      // currentMonthActuals 없을 때만 dailySales 정가로 ms 집계 (fallback)
-      // 도매부(121): 제품군 20 제외한 정가로 실적 집계
+    if (dateStr.startsWith(curMonthPfx)) {
+      // 도매부(121): 제품군 20 제외
       var isWholesale = (ddc === '121');
-      var msAmt = (isWholesale && pg === '20') ? 0 : amt;  // 도매 제품군 20 제외
+      var msAmt = (isWholesale && pg === '20') ? 0 : amt;
 
-      OTC_TOT.ms += msAmt;
-      if (DEPT_SALES[ddc])   DEPT_SALES[ddc].ms   += msAmt;
-      if (TEAM_SALES[dtc])   TEAM_SALES[dtc].ms   += msAmt;
-      if (COURSE_SALES[dcc]) COURSE_SALES[dcc].ms += msAmt;
+      if (!cma) {
+        // currentMonthActuals 없을 때만 dailySales 정가로 ms 합산 (fallback)
+        OTC_TOT.ms += msAmt;
+        if (DEPT_SALES[ddc])   DEPT_SALES[ddc].ms   += msAmt;
+        if (TEAM_SALES[dtc])   TEAM_SALES[dtc].ms   += msAmt;
+        if (COURSE_SALES[dcc]) COURSE_SALES[dcc].ms += msAmt;
+      }
 
-      // 당월 제품군별 실적 집계 (주요제품군 동향 차트용)
+      // 당월 제품군별 실적 집계 (주요제품군 동향 차트용) — cma 유무 관계없이 항상 집계
       if (msAmt !== 0) {
         var dmat = String(dr['자재'] || '');
         var dcat = dmat === SEBITABI_CODE ? '세비타비' : (MAT_CAT[dmat] || '기타');
