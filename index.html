@@ -1507,6 +1507,18 @@ function renderCourseCharts(courseCode, teamCode, deptCode) {
   function getMonthRank(sk, yk) {
     // 연도가 포함된 키(yk)만 사용하여 연도 혼용 방지
     // 2025년 단순키("01월순위") 폴백을 제거하여 2025년 데이터가 2026년 그래프에 표시되는 오류 수정
+    // 신규입사자: 입사 전 월 데이터는 null 처리
+    const hireInfo = HIRE_MAP[courseCode];
+    if (hireInfo && hireInfo.hireDate) {
+      const hd = new Date(hireInfo.hireDate);
+      const hireY = hd.getFullYear(), hireMM = hd.getMonth() + 1;
+      // yk 형식: "2026_01월순위" → 연도/월 파싱
+      const ykMatch = yk.match(/^(\d{4})_(\d{2})월순위$/);
+      if (ykMatch) {
+        const ky = parseInt(ykMatch[1]), km = parseInt(ykMatch[2]);
+        if (ky < hireY || (ky === hireY && km < hireMM)) return null;
+      }
+    }
     function pick(src) { const yv = src[yk] || 0; return yv; }
     const tl=pick(tlKpiData), mg=pick(mgrKpiData);
     if (isLeader){const v=tl>0?tl:mg>0?mg:0; return v>0?v:null;}
@@ -1527,12 +1539,21 @@ function renderCourseCharts(courseCode, teamCode, deptCode) {
   const validRanks = ranks.filter(v => v !== null);
 
   // 부문별 실제 인원 수 — 코스코드 앞3자리가 아닌 영업부 필드 기준으로 집계
+  // 총인원: orgChart 기준으로 직접 집계 (managerKPI 미등록 신규입사자도 포함, 팀장 제외)
   const _deptCnt = {};
-  for (const _c in MGR_KPI) {
-    const _rec = MGR_KPI[_c];
-    if (!_rec._newMember) {
-      const _d = String(_rec['영업부'] || '').trim();
-      _deptCnt[_d] = (_deptCnt[_d] || 0) + 1;
+  if (window.DASHBOARD_DATA && window.DASHBOARD_DATA.orgChart) {
+    for (const _o of window.DASHBOARD_DATA.orgChart) {
+      if (_o['직책'] === '팀장') continue;  // 팀장 제외
+      const _d = String(_o['영업부'] || '').trim();
+      if (_d) _deptCnt[_d] = (_deptCnt[_d] || 0) + 1;
+    }
+  } else {
+    for (const _c in MGR_KPI) {
+      const _rec = MGR_KPI[_c];
+      if (!_rec._newMember) {
+        const _d = String(_rec['영업부'] || '').trim();
+        _deptCnt[_d] = (_deptCnt[_d] || 0) + 1;
+      }
     }
   }
   const totalMembers = resolvedDept === '121'
