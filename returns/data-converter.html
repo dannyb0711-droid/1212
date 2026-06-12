@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>동화약품 반품분석 · Data Converter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;
+  --white:#ffffff;
+  --blue50:#eff6ff;--blue100:#dbeafe;--blue200:#bfdbfe;
+  --blue500:#3b82f6;--blue600:#2563eb;--blue700:#1d4ed8;
+  --indigo50:#eef2ff;--indigo500:#6366f1;--indigo600:#4f46e5;
+  --green50:#f0fdf4;--green100:#dcfce7;--green500:#22c55e;--green600:#16a34a;
+  --amber50:#fffbeb;--amber100:#fef3c7;--amber500:#f59e0b;--amber600:#d97706;
+  --red50:#fef2f2;--red100:#fee2e2;--red500:#ef4444;--red600:#dc2626;
+  --purple50:#faf5ff;--purple100:#f3e8ff;--purple500:#a855f7;--purple600:#9333ea;
+  --teal50:#f0fdfa;--teal500:#14b8a6;--teal600:#0d9488;
+  --gray50:#f9fafb;--gray100:#f3f4f6;--gray200:#e5e7eb;--gray300:#d1d5db;
+  --gray400:#9ca3af;--gray500:#6b7280;--gray700:#374151;--gray900:#111827;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow:0 4px 12px rgba(0,0,0,.08);
+  --shadow-md:0 8px 24px rgba(0,0,0,.1);
+  --radius:14px;
+}
+
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--gray900);
+  font-size:13px;line-height:1.6;min-height:100vh}
+
+/* ── HEADER ── */
+.hdr{background:var(--white);border-bottom:1px solid var(--gray200);padding:0 36px;
+  box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:200}
+.hdr-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.hdr-brand{display:flex;align-items:center;gap:14px}
+.hdr-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--blue600),var(--indigo600));
+  border-radius:11px;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:13px;letter-spacing:-.5px;flex-shrink:0}
+.hdr-title{font-size:17px;font-weight:700;color:var(--gray900)}
+.hdr-sub{font-size:11px;color:var(--gray400);margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:12px}
+
+/* ── YEAR SELECTOR ── */
+.year-sel{display:flex;background:var(--gray100);border-radius:10px;padding:3px;gap:2px}
+.ybtn{padding:5px 18px;border-radius:8px;border:none;background:transparent;
+  font-family:inherit;font-size:12px;font-weight:600;color:var(--gray500);
+  cursor:pointer;transition:all .18s}
+.ybtn.active{background:var(--white);color:var(--blue600);box-shadow:var(--shadow-sm)}
+
+/* ── MAIN LAYOUT ── */
+.main{max-width:1280px;margin:0 auto;padding:28px 36px}
+
+/* ── STATUS BAR ── */
+.status-bar{background:var(--white);border:1px solid var(--gray200);border-radius:12px;
+  padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;
+  justify-content:space-between;gap:16px;box-shadow:var(--shadow-sm)}
+.status-left{display:flex;align-items:center;gap:12px}
+.status-dot{width:9px;height:9px;border-radius:50%;background:var(--gray300);flex-shrink:0}
+.status-dot.ready{background:var(--amber500)}
+.status-dot.ok{background:var(--green500);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.status-text{font-size:12px;color:var(--gray500)}
+.status-text strong{color:var(--gray900)}
+.status-months{display:flex;gap:6px;flex-wrap:wrap}
+.mchip{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;
+  background:var(--blue50);color:var(--blue700);border:1px solid var(--blue100)}
+.mchip.latest{background:var(--blue600);color:#fff;border-color:var(--blue600)}
+
+/* ── SECTION LABEL ── */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:var(--gray400);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--gray200)}
+
+/* ── UPLOAD GRID ── */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+.upload-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+
+/* ── UPLOAD CARD ── */
+.ucard{background:var(--white);border:1.5px solid var(--gray200);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow-sm);transition:border-color .2s,box-shadow .2s;
+  position:relative}
+.ucard:hover{border-color:var(--blue300);box-shadow:var(--shadow)}
+.ucard.uploaded{border-color:var(--green500)}
+.ucard.fixed-item{border-color:var(--purple200,#e9d5ff)}
+.ucard.fixed-item.uploaded{border-color:var(--teal500)}
+
+.ucard-hdr{padding:14px 18px 12px;display:flex;align-items:flex-start;gap:12px;
+  border-bottom:1px solid var(--gray100)}
+.ucard-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:18px;flex-shrink:0}
+.ucard-meta{flex:1;min-width:0}
+.ucard-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--gray400);margin-bottom:2px}
+.ucard-title{font-size:13px;font-weight:700;color:var(--gray900);line-height:1.3}
+.ucard-desc{font-size:11px;color:var(--gray400);margin-top:3px;line-height:1.5}
+.ucard-badge{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;
+  letter-spacing:.3px;flex-shrink:0;align-self:flex-start;margin-top:2px}
+.badge-monthly{background:var(--blue50);color:var(--blue700);border:1px solid var(--blue100)}
+.badge-fixed{background:var(--purple50);color:var(--purple600);border:1px solid var(--purple100,#f3e8ff)}
+
+.ucard-body{padding:14px 18px}
+
+/* DROP ZONE */
+.dropzone{border:2px dashed var(--gray200);border-radius:10px;padding:18px 14px;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;
+  background:var(--gray50)}
+.dropzone:hover,.dropzone.drag{border-color:var(--blue500);background:var(--blue50)}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:24px;margin-bottom:6px}
+.drop-text{font-size:12px;color:var(--gray500)}
+.drop-text strong{color:var(--blue600)}
+.drop-hint{font-size:10px;color:var(--gray400);margin-top:3px}
+
+/* FILE STATUS */
+.file-status{margin-top:10px;display:none}
+.file-status.show{display:block}
+.fstat-item{display:flex;align-items:center;gap:8px;padding:7px 10px;
+  border-radius:8px;background:var(--gray50);border:1px solid var(--gray100);
+  margin-bottom:6px;font-size:11px}
+.fstat-icon{font-size:14px;flex-shrink:0}
+.fstat-name{flex:1;color:var(--gray700);font-weight:500;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.fstat-sheets{color:var(--gray400)}
+.fstat-ok{background:var(--green50);border-color:var(--green100)}
+.fstat-err{background:var(--red50);border-color:var(--red100)}
+
+/* SHEET CHIPS */
+.sheet-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.schip{padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;
+  background:var(--blue50);color:var(--blue700);border:1px solid var(--blue100);cursor:default}
+.schip.detected{background:var(--green50);color:var(--green600);border-color:var(--green100)}
+
+/* MONTH PROGRESS */
+.month-progress{margin-top:10px}
+.mp-label{font-size:11px;font-weight:600;color:var(--gray500);margin-bottom:6px}
+.mp-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.mp-cell{height:22px;border-radius:4px;background:var(--gray100);display:flex;
+  align-items:center;justify-content:center;font-size:9px;font-weight:700;
+  color:var(--gray400);transition:all .2s}
+.mp-cell.has{background:var(--green100);color:var(--green600)}
+.mp-cell.latest-m{background:var(--blue600);color:#fff}
+
+/* ── DASHBOARD ATTACH ── */
+.dash-attach{background:var(--white);border:1.5px solid var(--gray200);border-radius:var(--radius);
+  padding:20px 24px;margin-bottom:24px;box-shadow:var(--shadow-sm)}
+.dash-attach-inner{display:flex;align-items:center;gap:20px}
+.dash-attach-icon{font-size:36px;flex-shrink:0}
+.dash-attach-info{flex:1}
+.dash-attach-title{font-size:14px;font-weight:700;color:var(--gray900);margin-bottom:4px}
+.dash-attach-desc{font-size:12px;color:var(--gray500);line-height:1.6}
+.dash-file-name{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green600);
+  margin-top:4px;font-weight:600}
+.dash-drop{border:2px dashed var(--gray200);border-radius:10px;padding:14px 20px;
+  text-align:center;cursor:pointer;transition:all .2s;min-width:200px;
+  background:var(--gray50);position:relative}
+.dash-drop:hover{border-color:var(--blue500);background:var(--blue50)}
+.dash-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dash-drop-text{font-size:12px;color:var(--gray500)}
+
+/* ── GENERATE BUTTON ── */
+.gen-wrap{display:flex;justify-content:center;gap:12px;margin-bottom:32px}
+.gen-btn{display:flex;align-items:center;gap:10px;padding:14px 36px;
+  background:linear-gradient(135deg,var(--blue600),var(--indigo600));
+  color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(37,99,235,.3)}
+.gen-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.gen-btn-icon{font-size:18px}
+
+/* ── LOG ── */
+.log-wrap{background:var(--gray900);border-radius:12px;padding:16px 20px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;
+  max-height:260px;overflow-y:auto;display:none}
+.log-wrap.show{display:block}
+.log-wrap::-webkit-scrollbar{width:4px}
+.log-wrap::-webkit-scrollbar-thumb{background:#4b5563;border-radius:2px}
+.log-line{color:#9ca3af}
+.log-ok{color:#34d399}
+.log-warn{color:#fbbf24}
+.log-err{color:#f87171}
+.log-info{color:#60a5fa}
+.log-head{color:#e5e7eb;font-weight:600}
+
+/* ── PREVIEW TABLE ── */
+.preview-wrap{background:var(--white);border:1px solid var(--gray200);border-radius:12px;
+  overflow:hidden;margin-bottom:20px;display:none}
+.preview-wrap.show{display:block}
+.preview-hdr{padding:12px 18px;background:var(--gray50);border-bottom:1px solid var(--gray200);
+  font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.preview-tbl{overflow-x:auto;max-height:240px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead th{background:var(--gray50);padding:8px 12px;font-weight:600;text-align:left;
+  border-bottom:1px solid var(--gray200);white-space:nowrap;position:sticky;top:0}
+tbody td{padding:7px 12px;border-bottom:1px solid var(--gray100);color:var(--gray700)}
+tbody tr:hover{background:var(--blue50)}
+
+@media(max-width:1100px){
+  .upload-grid{grid-template-columns:1fr 1fr}
+  .upload-grid-2{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .upload-grid,.upload-grid-2{grid-template-columns:1fr}
+  .main{padding:16px}
+  .dash-attach-inner{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-brand">
+      <div class="hdr-logo">DW</div>
+      <div>
+        <div class="hdr-title">반품분석 Data Converter</div>
+        <div class="hdr-sub">동화약품 고객감동본부 영업기획팀 · 엑셀 → 대시보드 데이터 변환 도구</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="year-sel" id="year-sel">
+        <button class="ybtn" onclick="setYear(2024)">2024</button>
+        <button class="ybtn" onclick="setYear(2025)">2025</button>
+        <button class="ybtn active" onclick="setYear(2026)">2026</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="status-dot" id="status-dot"></div>
+      <div class="status-text" id="status-text">파일을 업로드하면 변환 준비가 시작됩니다.</div>
+    </div>
+    <div class="status-months" id="status-months"></div>
+  </div>
+
+  <!-- ① 반품자료 + ② 코스별 목표_실적 + ④ 담당자현황 (매월) -->
+  <div class="sec-label">📅 매월 업로드</div>
+  <div class="upload-grid">
+
+    <!-- ① 반품자료 -->
+    <div class="ucard" id="card-returns">
+      <div class="ucard-hdr">
+        <div class="ucard-icon" style="background:#fef2f2">📦</div>
+        <div class="ucard-meta">
+          <div class="ucard-num">01</div>
+          <div class="ucard-title">반품자료</div>
+          <div class="ucard-desc">Sheet명: 월별 (예: 26년 1월)<br>감점여부·판정코드·반품금액 포함</div>
+        </div>
+        <div class="ucard-badge badge-monthly">매월</div>
+      </div>
+      <div class="ucard-body">
+        <div class="dropzone" id="dz-returns" ondragover="dzDrag(event,'returns')" ondragleave="dzLeave(event,'returns')" ondrop="dzDrop(event,'returns')">
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(event,'returns')">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+          <div class="drop-hint">.xlsx / .xls</div>
+        </div>
+        <div class="file-status" id="fs-returns"></div>
+        <div class="month-progress" id="mp-returns" style="display:none">
+          <div class="mp-label">감지된 월</div>
+          <div class="mp-grid" id="mpg-returns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 코스별 목표_실적 -->
+    <div class="ucard" id="card-target">
+      <div class="ucard-hdr">
+        <div class="ucard-icon" style="background:#f0fdf4">🎯</div>
+        <div class="ucard-meta">
+          <div class="ucard-num">03</div>
+          <div class="ucard-title">코스별 목표_실적</div>
+          <div class="ucard-desc">Sheet명: 월별 (예: 26년 1월)<br>코스·목표금액·실적금액 포함</div>
+        </div>
+        <div class="ucard-badge badge-monthly">매월</div>
+      </div>
+      <div class="ucard-body">
+        <div class="dropzone" id="dz-target" ondragover="dzDrag(event,'target')" ondragleave="dzLeave(event,'target')" ondrop="dzDrop(event,'target')">
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(event,'target')">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+          <div class="drop-hint">.xlsx / .xls</div>
+        </div>
+        <div class="file-status" id="fs-target"></div>
+        <div class="month-progress" id="mp-target" style="display:none">
+          <div class="mp-label">감지된 월</div>
+          <div class="mp-grid" id="mpg-target"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 담당자현황 -->
+    <div class="ucard" id="card-staff">
+      <div class="ucard-hdr">
+        <div class="ucard-icon" style="background:#faf5ff">👤</div>
+        <div class="ucard-meta">
+          <div class="ucard-num">04</div>
+          <div class="ucard-title">담당자현황</div>
+          <div class="ucard-desc">Sheet명: 월별 (예: 26년 1월)<br>코스번호·담당자명·팀명 포함</div>
+        </div>
+        <div class="ucard-badge badge-monthly">매월</div>
+      </div>
+      <div class="ucard-body">
+        <div class="dropzone" id="dz-staff" ondragover="dzDrag(event,'staff')" ondragleave="dzLeave(event,'staff')" ondrop="dzDrop(event,'staff')">
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(event,'staff')">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+          <div class="drop-hint">.xlsx / .xls</div>
+        </div>
+        <div class="file-status" id="fs-staff"></div>
+        <div class="month-progress" id="mp-staff" style="display:none">
+          <div class="mp-label">감지된 월</div>
+          <div class="mp-grid" id="mpg-staff"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ 롤링 KPI 감점 대상자 -->
+    <div class="ucard" id="card-kpi">
+      <div class="ucard-hdr">
+        <div class="ucard-icon" style="background:#fff7ed">⚠️</div>
+        <div class="ucard-meta">
+          <div class="ucard-num">06</div>
+          <div class="ucard-title">롤링 KPI 감점 대상자</div>
+          <div class="ucard-desc">Sheet명: 월별 (예: 26년 1월)<br>코스·담당자·월별 교육대상 여부</div>
+        </div>
+        <div class="ucard-badge badge-monthly">매월</div>
+      </div>
+      <div class="ucard-body">
+        <div class="dropzone" id="dz-kpi" ondragover="dzDrag(event,'kpi')" ondragleave="dzLeave(event,'kpi')" ondrop="dzDrop(event,'kpi')">
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(event,'kpi')">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+          <div class="drop-hint">.xlsx / .xls</div>
+        </div>
+        <div class="file-status" id="fs-kpi"></div>
+        <div class="month-progress" id="mp-kpi" style="display:none">
+          <div class="mp-label">감지된 월</div>
+          <div class="mp-grid" id="mpg-kpi"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /upload-grid monthly -->
+
+  <!-- ② 판정코드 + ⑤ 제품구분 (고정) -->
+  <div class="sec-label">📌 고정 업로드 (필요시 갱신)</div>
+  <div class="upload-grid-2">
+
+    <!-- ② 판정코드 -->
+    <div class="ucard fixed-item" id="card-code">
+      <div class="ucard-hdr">
+        <div class="ucard-icon" style="background:#eff6ff">🏷️</div>
+        <div class="ucard-meta">
+          <div class="ucard-num">02</div>
+          <div class="ucard-title">판정코드</div>
+          <div class="ucard-desc">판정코드·판정사유·감점여부 매핑 테이블<br>한번 등록 후 변경 시에만 재업로드</div>
+        </div>
+        <div class="ucard-badge badge-fixed">고정</div>
+      </div>
+      <div class="ucard-body">
+        <div class="dropzone" id="dz-code" ondragover="dzDrag(event,'code')" ondragleave="dzLeave(event,'code')" ondrop="dzDrop(event,'code')">
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(event,'code')">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+          <div class="drop-hint">.xlsx / .xls · Sheet 무관</div>
+        </div>
+        <div class="file-status" id="fs-code"></div>
+      </div>
+    </div>
+
+    <!-- ⑤ 제품구분 -->
+    <div class="ucard fixed-item" id="card-material">
+      <div class="ucard-hdr">
+        <div class="ucard-icon" style="background:#f0fdfa">📋</div>
+        <div class="ucard-meta">
+          <div class="ucard-num">05</div>
+          <div class="ucard-title">제품구분</div>
+          <div class="ucard-desc">자재코드·구분관리 매핑 테이블<br>한번 등록 후 변경 시에만 재업로드</div>
+        </div>
+        <div class="ucard-badge badge-fixed">고정</div>
+      </div>
+      <div class="ucard-body">
+        <div class="dropzone" id="dz-material" ondragover="dzDrag(event,'material')" ondragleave="dzLeave(event,'material')" ondrop="dzDrop(event,'material')">
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(event,'material')">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+          <div class="drop-hint">.xlsx / .xls · Sheet 무관</div>
+        </div>
+        <div class="file-status" id="fs-material"></div>
+      </div>
+    </div>
+
+  </div><!-- /upload-grid-2 fixed -->
+
+  <!-- GENERATE -->
+  <div class="gen-wrap">
+    <button class="gen-btn" id="gen-btn" onclick="generate()" disabled>
+      <span class="gen-btn-icon">⚡</span>
+      data.js 변환 및 다운로드
+    </button>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-wrap" id="log-wrap"></div>
+
+  <!-- PREVIEW -->
+  <div class="preview-wrap" id="preview-wrap">
+    <div class="preview-hdr">
+      <span id="preview-title">변환 결과 미리보기</span>
+      <span id="preview-info" style="font-size:11px;color:var(--gray400)"></span>
+    </div>
+    <div class="preview-tbl" id="preview-tbl"></div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+const STATE = {
+  year: 2026,
+  files: {
+    returns:  null,
+    target:   null,
+    staff:    null,
+    kpi:      null,
+    code:     null,
+    material: null,
+  },
+  sheets: {
+    returns:{}, target:{}, staff:{}, kpi:{}, code:{}, material:{}
+  },
+};
+
+// 감지된 월 목록 (key → [YYYYMM, ...])
+const DETECTED_MONTHS = {};
+
+// ═══════════════════════════════════════════════
+//  YEAR
+// ═══════════════════════════════════════════════
+function setYear(y){
+  STATE.year = y;
+  document.querySelectorAll('.ybtn').forEach(b=>b.classList.toggle('active', +b.textContent===y));
+  updateStatus();
+}
+
+// ═══════════════════════════════════════════════
+//  DRAG & DROP HELPERS
+// ═══════════════════════════════════════════════
+function dzDrag(e,key){e.preventDefault();document.getElementById('dz-'+key).classList.add('drag');}
+function dzLeave(e,key){document.getElementById('dz-'+key).classList.remove('drag');}
+function dzDrop(e,key){
+  e.preventDefault();
+  document.getElementById('dz-'+key).classList.remove('drag');
+  const f=e.dataTransfer.files[0]; if(f) readExcel(f,key);
+}
+function handleFile(e,key){const f=e.target.files[0]; if(f) readExcel(f,key);}
+
+// ═══════════════════════════════════════════════
+//  EXCEL READ
+// ═══════════════════════════════════════════════
+function readExcel(file, key){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      STATE.files[key]=wb;
+      STATE.sheets[key]={};
+
+      if(key==='kpi'){
+        // KPI 파일: DB 시트에서 연월 컬럼으로 월별 분리
+        const dbSheet=wb.Sheets['DB']||wb.Sheets[wb.SheetNames[0]];
+        const allRows=XLSX.utils.sheet_to_json(dbSheet,{defval:''});
+        // 연월 컬럼명 탐지 (연월, 기준월, 년월 등)
+        const ymCol=allRows.length>0?Object.keys(allRows[0]).find(k=>
+          k.replace(/\s/g,'').match(/^(연월|기준월|년월|월)$/)) || Object.keys(allRows[0])[0] : '연월';
+        // 월별로 그룹핑
+        const monthGroups={};
+        allRows.forEach(r=>{
+          const rawYm=String(r[ymCol]||'').trim();
+          const ym=ymDotToYYYYMM(rawYm)||sheetToYYYYMM(rawYm);
+          if(!ym) return;
+          if(!monthGroups[ym]) monthGroups[ym]=[];
+          monthGroups[ym].push(r);
+        });
+        Object.entries(monthGroups).forEach(([ym,rows])=>{
+          STATE.sheets[key][ym]=rows;
+        });
+        const detectedMonths=Object.keys(monthGroups).filter(m=>m.startsWith(String(STATE.year)));
+        showFileStatus(key, file.name, ['DB ('+detectedMonths.map(m=>m.slice(4)+'월').join(', ')+')']);
+        DETECTED_MONTHS[key]=detectedMonths;
+        // 월 프로그레스 표시
+        if(detectedMonths.length>0){
+          document.getElementById('mp-kpi').style.display='block';
+          const latest=detectedMonths.slice().sort().pop();
+          document.getElementById('mpg-kpi').innerHTML=Array.from({length:12},(_,i)=>{
+            const mo=String(i+1).padStart(2,'0');
+            const ym=`${STATE.year}${mo}`;
+            const has=detectedMonths.includes(ym);
+            const isLat=ym===latest;
+            return `<div class="mp-cell ${has?(isLat?'latest-m':'has'):''}">${i+1}월</div>`;
+          }).join('');
+        }
+      } else {
+        // 일반 파일: 시트명으로 월 구분
+        wb.SheetNames.forEach(sn=>{
+          const ws=wb.Sheets[sn];
+          const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+          STATE.sheets[key][sn]=rows;  // 원본명
+          const ym=sheetToYYYYMM(sn);
+          if(ym) STATE.sheets[key][ym]=rows;  // 변환키 (예: '202601')
+        });
+        showFileStatus(key, file.name, wb.SheetNames);
+        detectMonths(key, wb.SheetNames);
+      }
+      updateStatus();
+    }catch(err){
+      showFileError(key, file.name, err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── 파일 상태 표시 ───
+function showFileStatus(key, name, sheets){
+  const el=document.getElementById('fs-'+key);
+  // 월별 파일: sheet chip 표시
+  const isMonthly=['returns','target','staff','kpi'].includes(key);
+  const sheetHtml=sheets.map(s=>{
+    const isMonth=isMonthlySheet(s);
+    return `<span class="schip ${isMonth?'detected':''}">${s}</span>`;
+  }).join('');
+  el.innerHTML=`
+    <div class="fstat-item fstat-ok">
+      <span class="fstat-icon">✅</span>
+      <span class="fstat-name" title="${name}">${name}</span>
+      <span class="fstat-sheets">${sheets.length}개 시트</span>
+    </div>
+    ${isMonthly?`<div class="sheet-chips">${sheetHtml}</div>`:''}
+  `;
+  el.classList.add('show');
+  document.getElementById('card-'+key).classList.add('uploaded');
+}
+function showFileError(key, name, msg){
+  const el=document.getElementById('fs-'+key);
+  el.innerHTML=`<div class="fstat-item fstat-err"><span class="fstat-icon">❌</span><span class="fstat-name">${name}</span><span class="fstat-sheets" style="color:var(--red600)">${msg}</span></div>`;
+  el.classList.add('show');
+}
+
+// ─── 월 감지 ───
+function isMonthlySheet(name){
+  const s=name.trim();
+  return /^\d{6}$/.test(s)                        // 202605
+    || /^\d{4}[-\/]\d{2}$/.test(s)                // 2026-05 / 2026/05
+    || /^\d{2}년\s*\d{1,2}월$/.test(s)            // 26년 1월 / 26년1월
+    || /^\d{4}년\s*\d{1,2}월$/.test(s);           // 2026년 1월 / 2026년1월
+}
+function sheetToYYYYMM(name){
+  const s=name.trim();
+  // 202605
+  if(/^\d{6}$/.test(s)) return s;
+  // 2026-05 / 2026/05
+  if(/^\d{4}[-\/]\d{2}$/.test(s)) return s.replace(/[-\/]/,'');
+  // 26년 1월 / 26년1월
+  const m2=s.match(/^(\d{2})년\s*(\d{1,2})월$/);
+  if(m2) return `20${m2[1]}${String(m2[2]).padStart(2,'0')}`;
+  // 2026년 1월 / 2026년1월
+  const m4=s.match(/^(\d{4})년\s*(\d{1,2})월$/);
+  if(m4) return `${m4[1]}${String(m4[2]).padStart(2,'0')}`;
+  return null;
+}
+function detectMonths(key, sheetNames){
+  const months=sheetNames.map(sheetToYYYYMM).filter(Boolean)
+    .filter(m=>m.startsWith(String(STATE.year)));
+  DETECTED_MONTHS[key]=months;
+  if(['returns','target','staff','kpi'].includes(key)){
+    const mpEl=document.getElementById('mp-'+key);
+    const mpGrid=document.getElementById('mpg-'+key);
+    if(months.length>0){
+      mpEl.style.display='block';
+      const latest=months.slice().sort().pop();
+      mpGrid.innerHTML=Array.from({length:12},(_,i)=>{
+        const mo=String(i+1).padStart(2,'0');
+        const ym=`${STATE.year}${mo}`;
+        const has=months.includes(ym);
+        const isLat=ym===latest;
+        return `<div class="mp-cell ${has?(isLat?'latest-m':'has'):''}">${i+1}월</div>`;
+      }).join('');
+    }
+  }
+}
+
+// ─── 전체 상태 갱신 ───
+function updateStatus(){
+  const hasReturns=!!STATE.files.returns;
+  const hasTarget=!!STATE.files.target;
+  const hasStaff=!!STATE.files.staff;
+  const hasKpi=!!STATE.files.kpi;
+  const hasCode=!!STATE.files.code;
+  const hasMaterial=!!STATE.files.material;
+
+  const required=[hasReturns,hasTarget,hasStaff,hasKpi];
+  const allCore=required.every(Boolean);
+  const ready=allCore; // 최소 조건
+
+  // 감지된 공통 월
+  const allMonthSets=Object.entries(DETECTED_MONTHS)
+    .filter(([k])=>['returns','target','staff','kpi'].includes(k))
+    .map(([,v])=>new Set(v));
+  let commonMonths=[];
+  if(allMonthSets.length>0){
+    commonMonths=[...allMonthSets[0]].filter(m=>allMonthSets.every(s=>s.has(m))).sort();
+  }
+  const latestMonth=commonMonths.length>0?commonMonths[commonMonths.length-1]:null;
+
+  const dot=document.getElementById('status-dot');
+  const txt=document.getElementById('status-text');
+  const mchips=document.getElementById('status-months');
+
+  if(ready && latestMonth){
+    dot.className='status-dot ok';
+    const y=latestMonth.slice(0,4),m=parseInt(latestMonth.slice(4));
+    txt.innerHTML=`<strong>변환 준비 완료</strong> · 기준월: ${y}년 ${m}월 · 공통 ${commonMonths.length}개월`;
+    mchips.innerHTML=commonMonths.map(mo=>{
+      const isLat=mo===latestMonth;
+      const my=mo.slice(0,4),mm=parseInt(mo.slice(4));
+      return `<span class="mchip ${isLat?'latest':''}">${my.slice(2)}·${mm}월${isLat?' ✓':''}</span>`;
+    }).join('');
+  } else if(hasReturns||hasTarget||hasStaff||hasKpi){
+    dot.className='status-dot ready';
+    const missing=[];
+    if(!hasReturns) missing.push('반품자료');
+    if(!hasTarget) missing.push('목표_실적');
+    if(!hasStaff) missing.push('담당자현황');
+    if(!hasKpi) missing.push('KPI');
+    txt.innerHTML=`<strong>업로드 진행 중</strong> · 미업로드: ${missing.join(', ')}`;
+    mchips.innerHTML='';
+  } else {
+    dot.className='status-dot';
+    txt.innerHTML='파일을 업로드하면 변환 준비가 시작됩니다.';
+    mchips.innerHTML='';
+  }
+
+  document.getElementById('gen-btn').disabled=!ready;
+}
+
+// ═══════════════════════════════════════════════
+//  COLUMN FINDER (유연한 컬럼명 매핑)
+// ═══════════════════════════════════════════════
+function findCol(row, candidates){
+  const keys=Object.keys(row);
+  for(const c of candidates){
+    const found=keys.find(k=>k.toString().replace(/\s/g,'').toLowerCase().includes(c.toLowerCase()));
+    if(found) return found;
+  }
+  return null;
+}
+function getVal(row, candidates, def=''){
+  const col=findCol(row,candidates);
+  return col!=null?(row[col]??def):def;
+}
+
+// ═══════════════════════════════════════════════
+//  GENERATE
+// ═══════════════════════════════════════════════
+let LOG=[];
+function log(msg,type='line'){
+  LOG.push({msg,type});
+  const el=document.getElementById('log-wrap');
+  el.classList.add('show');
+  el.innerHTML=LOG.map(l=>`<div class="log-${l.type}">${l.msg}</div>`).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+function generate(){
+  LOG=[];
+  document.getElementById('log-wrap').innerHTML='';
+  document.getElementById('preview-wrap').classList.remove('show');
+
+  log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','head');
+  log(`  동화약품 반품분석 Data Converter  ${STATE.year}년`,'head');
+  log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','head');
+
+  // 공통 월 계산 — YYYYMM 형식 키만 추출 (중복 제거)
+  const allSets=(['returns','target','staff','kpi']).map(k=>{
+    const months=[...new Set(
+      Object.keys(STATE.sheets[k]||{})
+        .filter(k=>/^\d{6}$/.test(k))  // 이미 변환된 YYYYMM 키만
+        .filter(m=>m.startsWith(String(STATE.year)))
+    )];
+    log(`  ${k}: 감지 월 → ${months.join(', ')||'없음'}`,'line');
+    return new Set(months);
+  });
+  const commonMonths=[...allSets[0]].filter(m=>allSets.every(s=>s.has(m))).sort();
+  if(commonMonths.length===0){log('❌ 공통 월 데이터가 없습니다. 4개 파일의 시트명을 확인해주세요.','err');return;}
+  log(`✅ 공통 월: ${commonMonths.join(', ')}`,'ok');
+
+  // 판정코드 맵
+  const codeMap=buildCodeMap();
+  // 제품구분 맵
+  const matMap=buildMatMap();
+
+  const ALL_DATA={};
+
+  for(const ym of commonMonths){
+    log(`\n▶ ${ym.slice(0,4)}년 ${parseInt(ym.slice(4))}월 처리 중...`,'info');
+    const monthKey=`${ym.slice(0,4)}-${ym.slice(4)}`;
+    try{
+      const data=buildMonthData(ym,codeMap,matMap);
+      if(data) {
+        ALL_DATA[monthKey]=data;
+        log(`  ✓ summary: 감점반품 ${data.summary.totalPenalty.toLocaleString()}원, 교육 ${data.summary.eduCount}명, KPI ${data.summary.kpiCount}명`,'ok');
+      }
+    }catch(e){
+      log(`  ✗ ${ym} 처리 오류: ${e.message}`,'err');
+    }
+  }
+
+  const latestKey=Object.keys(ALL_DATA).sort().pop();
+  if(!latestKey){log('❌ 변환된 데이터가 없습니다.','err');return;}
+
+  // ── KPI 롤링 후처리: 월별 교육대상 여부(m01~m12)를 ALL_DATA 전체 기준으로 계산
+  log('\n▶ KPI 롤링 후처리 중...','info');
+  const allMonthKeys=Object.keys(ALL_DATA).sort(); // ['2026-01', '2026-02', ...]
+  // 코드별 {월:교육여부} 맵 구성
+  const kpiByCode={};
+  allMonthKeys.forEach(mk=>{
+    const mo=parseInt(mk.split('-')[1]); // 1~12
+    const mkey=`m${String(mo).padStart(2,'0')}`;
+    (ALL_DATA[mk].kpi||[]).forEach(k=>{
+      const c=String(k.code);
+      if(!kpiByCode[c]) kpiByCode[c]={name:k.name,team:k.team};
+      kpiByCode[c][mkey]=true;
+    });
+  });
+  // 각 월별로 해당 월 기준 연속 3개월 판정 후 kpi 교체
+  const latestMo=parseInt(latestKey.split('-')[1]);
+
+  allMonthKeys.forEach(mk=>{
+    const curMo=parseInt(mk.split('-')[1]);
+    const eligible=Object.entries(kpiByCode)
+      .map(([code,info])=>{
+        const entry={team:info.team,code:parseInt(code)||code,name:info.name};
+        for(let m=1;m<=12;m++) entry[`m${String(m).padStart(2,'0')}`]=!!info[`m${String(m).padStart(2,'0')}`];
+        return entry;
+      })
+      .filter(e=>{
+        if(curMo<3) return false;
+        return [curMo-2,curMo-1,curMo].every(m=>e[`m${String(m).padStart(2,'0')}`]);
+      });
+    ALL_DATA[mk].kpi=eligible;
+    ALL_DATA[mk].summary.kpiCount=eligible.length;
+    log(`  ✓ KPI 롤링 ${mk}: ${eligible.length}명 (${curMo>=3?`${curMo-2}·${curMo-1}·${curMo}월 연속`:'판정불가'})`,'ok');
+  });
+
+  const finalKpi=ALL_DATA[latestKey].kpi;
+  log(`  ✓ KPI 롤링 확정: ${finalKpi.length}명 (최근 3개월 연속 기준)`,'ok');
+
+  log(`\n✅ 변환 완료: ${Object.keys(ALL_DATA).length}개월`,'ok');
+  log(`📌 최신 기준월: ${latestKey}`,'info');
+
+  // 미리보기
+  showPreview(ALL_DATA[latestKey], latestKey);
+
+  // JS 생성 및 다운로드
+  const jsContent=buildJS(ALL_DATA, latestKey);
+  downloadText(jsContent,'data.js','text/javascript');
+  log('\n📥 data.js 다운로드 완료 — 대시보드와 같은 폴더에 저장하세요.','ok');
+}
+
+// ─── 판정코드 맵 빌드 ───
+function buildCodeMap(){
+  if(!STATE.files.code) return {};
+  const map={};
+  const sheets=STATE.sheets.code;
+  const sn=Object.keys(sheets)[0];
+  if(!sn) return {};
+  for(const row of sheets[sn]){
+    const code=String(getVal(row,['판정코드','코드','code','판정코드(3자리)','CODE'])||'').trim().padStart(3,'0');
+    const reason=String(getVal(row,['판정사유','사유','reason','사유명','판정명'])||'').trim();
+    const penalty=String(getVal(row,['감점여부','감점','penalty','감점여부(O/X)','감점(O/X)','PENALTY'])||'').trim().toLowerCase();
+    if(code) map[code]={reason,isPenalty:penalty==='o'||penalty==='y'||penalty==='yes'||penalty==='감점'};
+  }
+  log(`  판정코드: ${Object.keys(map).length}개 로드`,'line');
+  return map;
+}
+
+// ─── 제품구분 맵 빌드 ───
+function buildMatMap(){
+  if(!STATE.files.material) return {};
+  const map={};
+  const sheets=STATE.sheets.material;
+  const sn=Object.keys(sheets)[0];
+  if(!sn) return {};
+  // 제품구분 파일 컬럼명 진단
+  const rows=sheets[sn];
+  if(rows.length>0){
+    const mk=Object.keys(rows[0]);
+    log(`  [진단] 제품구분 컬럼명: ${mk.join(' | ')}`, 'line');
+    log(`  [진단] 제품구분 첫행 샘플: ${JSON.stringify(rows[0])}`, 'line');
+    // 구분관리 고유값 목록
+    const catVals=[...new Set(rows.map(r=>String(getVal(r,['구분관리','구분','category','카테고리'])||'')))].slice(0,15);
+    log(`  [진단] 구분관리 고유값: ${catVals.join(' | ')}`, 'line');
+  }
+  for(const row of sheets[sn]){
+    const matCode=String(getVal(row,['자재코드','자재','material','자재번호','품목','품목번호','Material'])||'').trim();
+    const cat=String(getVal(row,['구분관리','구분','category','카테고리','제품구분','msCat','msCats'])||'').trim();
+    if(matCode) map[matCode]=cat||'미확인';
+  }
+  log(`  제품구분: ${Object.keys(map).length}개 자재 로드`,'line');
+  return map;
+}
+
+// ─── 월 데이터 빌드 ───
+function buildMonthData(ym, codeMap, matMap){
+  const returnRows  = STATE.sheets.returns[ym]  || STATE.sheets.returns[`${ym.slice(0,4)}-${ym.slice(4)}`] || [];
+  const targetRows  = STATE.sheets.target[ym]   || STATE.sheets.target[`${ym.slice(0,4)}-${ym.slice(4)}`]  || [];
+  const staffRows   = STATE.sheets.staff[ym]    || STATE.sheets.staff[`${ym.slice(0,4)}-${ym.slice(4)}`]   || [];
+  const kpiRows     = STATE.sheets.kpi[ym]      || STATE.sheets.kpi[`${ym.slice(0,4)}-${ym.slice(4)}`]     || [];
+
+  // ── 담당자 맵 { 코스코드: {name, team, dept} }
+  // ── staff 컬럼 진단
+  if(staffRows.length>0){
+    const sk=Object.keys(staffRows[0]);
+    log(`  [진단] staff 컬럼명(${ym}): ${sk.join(' | ')}`, 'line');
+    const sample=staffRows[0];
+    log(`  [진단] staff 첫행 샘플: ${JSON.stringify(sample)}`, 'line');
+  }
+
+  const staffMap={};
+  for(const r of staffRows){
+    const code=String(getVal(r,['코스','영업코스','코스코드','course','코스번호'])||'').trim();
+    const name=String(getVal(r,['성명','담당자','이름','name','성명(이름)','MR명','담당자명'])||'').trim();
+    const team=String(getVal(r,['내역_1','팀명','팀','team','영업팀명','팀이름'])||'').trim();
+    const dept=String(getVal(r,['내역','영업부','부서','dept','department','영업부명'])||'').trim();
+    const courseName=String(getVal(r,['지역이름','코스명','courseName'])||'').trim();
+    if(code) staffMap[code]={name,team,dept:normDept(dept),courseName};
+  }
+
+  // ── 코스별 목표 맵 { 코스코드: target }
+  const targetMap={};
+  for(const r of targetRows){
+    const code=String(getVal(r,['코스','영업코스','코스코드'])||'').trim();
+    const tgt=toNum(getVal(r,['목표','목표금액','target','목표액']));
+    if(code) targetMap[code]=tgt;
+  }
+
+  // ── 반품 엑셀 컬럼명 진단 (첫 행 키 출력)
+  if(returnRows.length>0){
+    const sampleKeys=Object.keys(returnRows[0]);
+    log(`  [진단] 반품 엑셀 컬럼명(${ym}): ${sampleKeys.join(' | ')}`, 'line');
+    // 감점여부 컬럼 직접 탐색
+    const penColCandidates=['감점여부','감점','penalty','감점여부(O/X)','감점(O/X)'];
+    const foundPenCol=penColCandidates.find(c=>sampleKeys.includes(c));
+    log(`  [진단] 감점여부 컬럼: ${foundPenCol||'없음(판정코드로 조회)'}`, foundPenCol?'ok':'line');
+    // 판정코드 컬럼 탐색
+    const codeColCandidates=['판정코드','판정','code','판정코드(3자리)'];
+    const foundCodeCol=codeColCandidates.find(c=>sampleKeys.includes(c));
+    log(`  [진단] 판정코드 컬럼: ${foundCodeCol||'없음'}`, foundCodeCol?'ok':'line');
+    // 반품금액 컬럼 탐색
+    const amtColCandidates=['오더순매출','반품금액','금액','amount'];
+    const foundAmtCol=amtColCandidates.find(c=>sampleKeys.includes(c));
+    log(`  [진단] 반품금액 컬럼: ${foundAmtCol||'없음'}`, foundAmtCol?'ok':'line');
+    // 실제 첫 행 금액 샘플 출력
+    if(returnRows.length>0){
+      const sampleAmt=getVal(returnRows[0],['오더순매출','반품금액','금액','amount']);
+      log(`  [진단] 첫행 오더순매출 샘플값: ${sampleAmt}`, sampleAmt?'ok':'line');
+    }
+    // codeMap 로드 확인
+    log(`  [진단] codeMap 로드된 판정코드 수: ${Object.keys(codeMap).length}개 (${Object.keys(codeMap).join(', ')})`, Object.keys(codeMap).length>0?'ok':'line');
+  }
+
+  // ── 반품 집계 (감점여부=o 만)
+  // 1순위: 반품 행에 감점여부 컬럼이 직접 있는 경우
+  // 2순위: 판정코드로 codeMap 조회 (감점여부 컬럼 없을 때)
+  const penaltyRows=returnRows.filter(r=>{
+    const pen=String(getVal(r,['감점여부','감점','penalty','감점여부(O/X)','감점(O/X)'])||'').trim().toLowerCase();
+    if(pen==='o'||pen==='y') return true;
+    const penCode=String(getVal(r,['판정코드','판정','code','판정코드(3자리)'])||'').trim().padStart(3,'0');
+    if(penCode && codeMap[penCode]) return codeMap[penCode].isPenalty===true;
+    return false;
+  });
+  log(`  [진단] penaltyRows(감점O): ${penaltyRows.length}건 / 전체: ${returnRows.length}건`, penaltyRows.length>0?'ok':'line');
+
+  // reason 집계
+  const reasonAgg={};
+  for(const r of penaltyRows){
+    const code=String(getVal(r,['판정코드','판정','code'])||'').trim().padStart(3,'0');
+    const info=codeMap[code]||{};
+    const label=info.reason||`코드${code}`;
+    const amt=toNum(getVal(r,['오더순매출','반품금액','금액','amount']));
+    reasonAgg[label]=(reasonAgg[label]||0)+amt;
+  }
+  const reason=Object.entries(reasonAgg).sort((a,b)=>b[1]-a[1])
+    .map(([label,amount])=>({label,amount}));
+
+  // material 집계 (약국영업부 OTC 행만, 제품 컬럼 = 자재코드)
+  const OTC_DEPT_LIST=['약국영업1부','약국영업2부','약국영업3부'];
+  const otcPenaltyRows=penaltyRows.filter(r=>{
+    const dept=String(getVal(r,['영업부명','영업부','dept'])||'').trim();
+    return OTC_DEPT_LIST.includes(dept);
+  });
+  log(`  [진단] OTC 감점 행: ${otcPenaltyRows.length}건 (전체 감점 ${penaltyRows.length}건)`, 'line');
+  const matAgg={};
+  for(const r of otcPenaltyRows){
+    const mc=String(getVal(r,['제품','자재코드','material','자재'])||'').trim();
+    const cat=matMap[mc]||'미확인';
+    const amt=toNum(getVal(r,['오더순매출','반품금액','금액','amount']));
+    matAgg[cat]=(matAgg[cat]||0)+amt;
+  }
+  const material=Object.entries(matAgg).sort((a,b)=>b[1]-a[1])
+    .map(([label,amount])=>({label,amount}));
+
+  // course-level 반품 집계: { courseCode: {amount, cases, reject_count_by_date} }
+  const courseAgg={};
+  for(const r of penaltyRows){
+    const code=String(getVal(r,['영업코스','코스','course','코스코드','영업코드'])||'').trim();
+    if(!code) continue;
+    const amt=toNum(getVal(r,['오더순매출','반품금액','금액','amount']));
+    const penCode=String(getVal(r,['판정코드','판정'])||'').trim().padStart(3,'0');
+    const client=String(getVal(r,['거래선명','거래처명','거래처','client'])||'').trim();
+    const clientCode=String(getVal(r,['거래선','거래처코드'])||'').trim();
+    const dateRaw=getVal(r,['입고일자','날짜','일자','date'])||'';
+    const dateStr=excelDate(dateRaw);
+
+    if(!courseAgg[code]) courseAgg[code]={amount:0,cases:0,rejectAmt:0,rejectDates:{}};
+    courseAgg[code].amount+=amt;
+    courseAgg[code].cases++;
+    if(penCode==='004'){
+      courseAgg[code].rejectAmt+=amt;
+      const dk=`${clientCode||client}__${dateStr}`;
+      courseAgg[code].rejectDates[dk]=(courseAgg[code].rejectDates[dk]||0)+amt;
+    }
+  }
+
+  // team 집계
+  const teamAgg={};
+  for(const [code,agg] of Object.entries(courseAgg)){
+    const s=staffMap[code]||{team:'미분류',dept:'미분류'};
+    const key=s.team;
+    const tgt=targetMap[code]||0;
+    if(!teamAgg[key]) teamAgg[key]={dept:s.dept,amount:0,target:0,eduCnt:0};
+    teamAgg[key].amount+=agg.amount;
+    teamAgg[key].target+=tgt;
+  }
+  // 반품율, edu count
+  for(const [key,t] of Object.entries(teamAgg)){
+    t.rate=t.target>0?parseFloat((t.amount/t.target*100).toFixed(2)):0;
+  }
+  const team=Object.entries(teamAgg).sort((a,b)=>b[1].rate-a[1].rate)
+    .map(([t,v])=>({dept:v.dept,team:t,amount:v.amount,target:v.target,rate:v.rate,eduCnt:0}));
+
+  // edu 집계 (코스 반품율 3% 초과, 98코스 제외)
+  const eduList=[];
+  for(const [code,agg] of Object.entries(courseAgg)){
+    if(String(code).endsWith('98')) continue;
+    const tgt=targetMap[code]||0;
+    if(tgt===0) continue;
+    const rate=parseFloat((agg.amount/tgt*100).toFixed(2));
+    if(rate>=3){
+      const s=staffMap[code]||{name:'미확인',team:'미확인',dept:'미확인'};
+      eduList.push({dept:s.dept,team:s.team,code:parseInt(code)||code,name:s.name,
+        amount:agg.amount,target:tgt,rate,courseName:s.courseName||`${s.team} ${String(code).slice(-2)}코스`});
+    }
+  }
+  // team eduCnt 갱신
+  const eduByTeam={};
+  eduList.forEach(e=>{eduByTeam[e.team]=(eduByTeam[e.team]||0)+1;});
+  team.forEach(t=>{t.eduCnt=eduByTeam[t.team]||0;});
+
+  // reject 집계 (판정코드 004, 거래선+날짜 기준)
+  const rejectMap={};
+  for(const r of penaltyRows){
+    const penCode=String(getVal(r,['판정코드','판정'])||'').trim().padStart(3,'0');
+    if(penCode!=='004') continue;
+    const code=String(getVal(r,['영업코스','코스'])||'').trim();
+    const client=String(getVal(r,['거래선명','거래처명','거래처'])||'').trim();
+    const clientCode=String(getVal(r,['거래선','거래처코드'])||'').trim();
+    const dateRaw=getVal(r,['입고일자','날짜','일자','date'])||'';
+    const dateStr=excelDate(dateRaw);
+    const amt=toNum(getVal(r,['오더순매출','반품금액','금액','amount']));
+    const s=staffMap[code]||{team:'미확인',dept:'미확인'};
+    const dk=`${code}__${clientCode||client}__${dateStr}`;
+    if(!rejectMap[dk]) rejectMap[dk]={dept:s.dept,team:s.team,code:String(code),
+      client,amount:0,_dateKey:dateStr};
+    rejectMap[dk].amount+=amt;
+  }
+  // 동일 코스+거래선 건수 집계
+  const rejectByClientCode={};
+  for(const [dk,v] of Object.entries(rejectMap)){
+    const ck=`${v.code}__${v.client}`;
+    if(!rejectByClientCode[ck]) rejectByClientCode[ck]={...v,count:0};
+    rejectByClientCode[ck].amount+=v.amount;
+    rejectByClientCode[ck].count+=1;
+  }
+  // 중복 amount 수정 (sum once)
+  const rejectFinal={};
+  for(const [dk,v] of Object.entries(rejectMap)){
+    const ck=`${v.code}__${v.client}`;
+    if(!rejectFinal[ck]) rejectFinal[ck]={dept:v.dept,team:v.team,code:v.code,client:v.client,amount:0,count:0};
+    rejectFinal[ck].amount+=v.amount;
+    rejectFinal[ck].count+=1;
+  }
+  const reject=Object.values(rejectFinal).sort((a,b)=>b.amount-a.amount);
+
+  // KPI 롤링 집계
+  const kpi=buildKpi(kpiRows, staffMap);
+
+  // Summary
+  const totalPenalty=penaltyRows.reduce((s,r)=>s+toNum(getVal(r,['오더순매출','반품금액','금액','amount'])),0);
+  const totalCases=penaltyRows.length;
+  const rejectAmt=reject.reduce((s,r)=>s+r.amount,0);
+
+  return {
+    summary:{totalPenalty,totalCases,rejectAmt,eduCount:eduList.length,kpiCount:kpi.length},
+    reason,material,team,
+    edu:eduList.sort((a,b)=>b.rate-a.rate),
+    kpi,reject
+  };
+}
+
+// ─── KPI 롤링 빌드 ───
+function buildKpi(kpiRows, staffMap){
+  // KPI DB 구조: 연월(26.01), 팀, 영업팀명, 코스, 반품금액, 목표(평가), 반품율, 교육대상(이름or공백)
+  // kpiRows = 해당 월의 행들 (이미 월별로 분리된 상태)
+  // 전달받은 월의 교육대상자만 추출하되, 전체 월 롤링을 위해 ALL_DATA에서 m01~m05 구성
+  // → buildMonthData 호출 시점에는 해당 월 rows만 있으므로
+  //   롤링(월별 교육여부)은 ALL_DATA 전체에서 후처리로 계산
+  const result=[];
+  for(const r of kpiRows){
+    const code=String(getVal(r,['코스','영업코스','코스코드'])||'').trim();
+    if(!code) continue;
+    if(String(code).endsWith('98')) continue;
+    const eduName=String(getVal(r,['교육대상','교육대상자','교육'])||'').trim();
+    if(!eduName) continue; // 교육대상 값 없으면 해당 월 미해당
+    const teamName=String(getVal(r,['내역_1','영업팀명','팀명','팀'])||'').trim();
+    const s=staffMap[code]||{name:eduName,team:teamName,dept:'미확인'};
+    result.push({code:parseInt(code)||code, name:s.name||eduName, team:s.team||teamName});
+  }
+  return result;
+}
+
+// ─── 연월 26.01 형식 → YYYYMM ───
+function ymDotToYYYYMM(s){
+  // 26.01 → 202601 / 2026.01 → 202601
+  const m2=s.match(/^(\d{2})\.(\d{2})$/);
+  if(m2) return `20${m2[1]}${m2[2]}`;
+  const m4=s.match(/^(\d{4})\.(\d{2})$/);
+  if(m4) return `${m4[1]}${m4[2]}`;
+  return null;
+}
+
+// ─── HELPERS ───
+function toNum(v){
+  if(typeof v==='number') return v;
+  const s=String(v||'').replace(/,/g,'').trim();
+  const n=parseFloat(s);
+  return isNaN(n)?0:n;
+}
+function boolVal(v){
+  if(typeof v==='boolean') return v;
+  const s=String(v||'').trim().toLowerCase();
+  return s==='true'||s==='1'||s==='o'||s==='y'||s==='yes'||s==='●'||s==='✓';
+}
+function normDept(s){
+  if(!s) return '미확인';
+  if(s.includes('1부')||s==='111') return '약국영업1부';
+  if(s.includes('2부')||s==='112') return '약국영업2부';
+  if(s.includes('3부')||s==='113') return '약국영업3부';
+  return s;
+}
+function excelDate(v){
+  if(!v) return '';
+  if(typeof v==='number'){
+    // Excel serial date
+    const d=new Date(Math.round((v-25569)*86400*1000));
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  return String(v).trim().slice(0,10);
+}
+
+// ─── JS 생성 ───
+function buildJS(ALL_DATA, latestKey){
+  const js=`// 동화약품 반품분석 데이터 파일
+// 생성: ${new Date().toLocaleString('ko-KR')}
+// 기준월: ${latestKey}
+// ─────────────────────────────────────────────
+const ALL_DATA = ${JSON.stringify(ALL_DATA,null,2)};
+
+const MONTH_LIST = ${JSON.stringify(generateMonthList(ALL_DATA))};
+`;
+  return js;
+}
+
+function generateMonthList(data){
+  const keys=Object.keys(data).sort();
+  if(keys.length===0) return [];
+  const first=keys[0];
+  const last=keys[keys.length-1];
+  const [fy,fm]=first.split('-').map(Number);
+  const [ly,lm]=last.split('-').map(Number);
+  const list=[];
+  let y=fy,m=fm;
+  while(y<ly||(y===ly&&m<=lm)){
+    list.push(`${y}-${String(m).padStart(2,'0')}`);
+    m++;if(m>12){m=1;y++;}
+  }
+  return list;
+}
+
+
+// ─── 다운로드 ───
+function downloadText(content, filename, mime){
+  const blob=new Blob([content],{type:mime+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── 미리보기 ───
+function showPreview(data, monthKey){
+  const el=document.getElementById('preview-wrap');
+  const tbl=document.getElementById('preview-tbl');
+  const title=document.getElementById('preview-title');
+  const info=document.getElementById('preview-info');
+  const [y,m]=monthKey.split('-');
+  title.textContent=`${y}년 ${parseInt(m)}월 · 교육대상자 미리보기`;
+  info.textContent=`총 ${data.edu.length}명`;
+  tbl.innerHTML=`<table>
+    <thead><tr><th>#</th><th>영업부</th><th>팀명</th><th>코스</th><th>담당자</th><th>반품금액</th><th>반품율</th></tr></thead>
+    <tbody>${data.edu.slice(0,15).map((d,i)=>`
+      <tr>
+        <td style="color:#9ca3af">${i+1}</td>
+        <td>${d.dept}</td>
+        <td>${d.team}</td>
+        <td style="font-family:JetBrains Mono,monospace">${d.code}</td>
+        <td style="font-weight:600">${d.name}</td>
+        <td style="text-align:right;font-family:JetBrains Mono,monospace">${d.amount.toLocaleString()}</td>
+        <td style="text-align:center"><span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:5px;font-weight:700;font-size:11px">${d.rate.toFixed(2)}%</span></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+  el.classList.add('show');
+}
+</script>
+</body>
+</html>
