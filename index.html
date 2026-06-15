@@ -692,18 +692,18 @@ function computeAggregates(D) {
 
     if (!DEPT_SALES[dc]) DEPT_SALES[dc] = { t:0, s:0, ms:0, monT:0, cats:{} };
     DEPT_SALES[dc].t += t; DEPT_SALES[dc].s += s;
-    if (!DEPT_SALES[dc].cats[cat]) DEPT_SALES[dc].cats[cat] = { t:0, s:0 };
-    DEPT_SALES[dc].cats[cat].t += t; DEPT_SALES[dc].cats[cat].s += s;
+    if (!DEPT_SALES[dc].cats[cat]) DEPT_SALES[dc].cats[cat] = { t:0, s:0, monT:0 };
+    DEPT_SALES[dc].cats[cat].t += t; DEPT_SALES[dc].cats[cat].s += s; DEPT_SALES[dc].cats[cat].monT += mt;
 
     if (!TEAM_SALES[tc]) TEAM_SALES[tc] = { t:0, s:0, ms:0, monT:0, cats:{}, deptCode: dc };
     TEAM_SALES[tc].t += t; TEAM_SALES[tc].s += s;
-    if (!TEAM_SALES[tc].cats[cat]) TEAM_SALES[tc].cats[cat] = { t:0, s:0 };
-    TEAM_SALES[tc].cats[cat].t += t; TEAM_SALES[tc].cats[cat].s += s;
+    if (!TEAM_SALES[tc].cats[cat]) TEAM_SALES[tc].cats[cat] = { t:0, s:0, monT:0 };
+    TEAM_SALES[tc].cats[cat].t += t; TEAM_SALES[tc].cats[cat].s += s; TEAM_SALES[tc].cats[cat].monT += mt;
 
     if (!COURSE_SALES[cc]) COURSE_SALES[cc] = { t:0, s:0, ms:0, monT:0, cats:{}, teamCode: tc };
     COURSE_SALES[cc].t += t; COURSE_SALES[cc].s += s;
-    if (!COURSE_SALES[cc].cats[cat]) COURSE_SALES[cc].cats[cat] = { t:0, s:0 };
-    COURSE_SALES[cc].cats[cat].t += t; COURSE_SALES[cc].cats[cat].s += s;
+    if (!COURSE_SALES[cc].cats[cat]) COURSE_SALES[cc].cats[cat] = { t:0, s:0, monT:0 };
+    COURSE_SALES[cc].cats[cat].t += t; COURSE_SALES[cc].cats[cat].s += s; COURSE_SALES[cc].cats[cat].monT += mt;
 
     // 당월 목표 (마지막 레코드의 판매목표금액)
     OTC_TOT.monT = (OTC_TOT.monT||0) + mt;
@@ -1441,17 +1441,17 @@ function renderProductsChart(level, deptCode, teamCode) {
       const mc = DEPT_SALES[dc].msCats || {};
       for (const cat in mc) { msCatsData[cat] = (msCatsData[cat] || 0) + mc[cat]; }
       const tc2 = DEPT_SALES[dc].cats || {};
-      for (const cat in tc2) { monTCatsData[cat] = (monTCatsData[cat] || 0) + tc2[cat].t; }
+      for (const cat in tc2) { monTCatsData[cat] = (monTCatsData[cat] || 0) + (tc2[cat].monT || tc2[cat].t); }
     }
     activeDeptCode = null;
   } else if (level === 'dept') {
     msCatsData  = DEPT_SALES[deptCode]?.msCats || {};
     const tc2   = DEPT_SALES[deptCode]?.cats || {};
-    for (const cat in tc2) monTCatsData[cat] = tc2[cat].t;
+    for (const cat in tc2) monTCatsData[cat] = (tc2[cat].monT || tc2[cat].t);
   } else if (level === 'team') {
     msCatsData  = TEAM_SALES[teamCode]?.msCats || {};
     const tc2   = TEAM_SALES[teamCode]?.cats || {};
-    for (const cat in tc2) monTCatsData[cat] = tc2[cat].t;
+    for (const cat in tc2) monTCatsData[cat] = (tc2[cat].monT || tc2[cat].t);
     activeDeptCode = TEAM_SALES[teamCode]?.deptCode || deptCode;
   }
 
@@ -1644,7 +1644,7 @@ function renderCourseCharts(courseCode, teamCode, deptCode) {
   const msCatsData  = COURSE_SALES[courseCode]?.msCats || {};
   const monTCatsData = {};
   const _ytdCats = COURSE_SALES[courseCode]?.cats || {};
-  for (const cat in _ytdCats) monTCatsData[cat] = _ytdCats[cat].t;
+  for (const cat in _ytdCats) monTCatsData[cat] = (_ytdCats[cat].monT || _ytdCats[cat].t);
 
   const SHOW_CATS = getDisplayCats('dept', resolvedDept);
   const cats  = SHOW_CATS.filter(c => (msCatsData[c] || 0) > 0 || (monTCatsData[c] || 0) > 0);
