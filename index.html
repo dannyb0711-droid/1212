@@ -590,8 +590,12 @@ function buildLookups(D) {
       // plain 컬럼(01월순위)이 있으면 2026_01월순위로도 등록 (연도 접두어 보완)
       const enriched = { ...r };
       for (const k of Object.keys(r)) {
-        if (/^\d{2}월순위$/.test(k) && !r['2026_' + k]) {
-          enriched['2026_' + k] = r[k];
+        if (/^\d{1,2}월순위$/.test(k)) {
+          // 한 자리 숫자(예: "5월순위") → 두 자리 패딩 후 연도 접두어 보완
+          const paddedKey = k.replace(/^(\d)월/, '0$1월'); // "5월순위" → "05월순위"
+          if (!r['2026_' + paddedKey]) {
+            enriched['2026_' + paddedKey] = r[k];
+          }
         }
       }
       const c = enriched['코스'] && enriched['코스'].trim();
