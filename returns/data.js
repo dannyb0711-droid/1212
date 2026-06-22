@@ -1,5 +1,5 @@
 // 동화약품 반품분석 데이터 파일
-// 생성: 2026. 6. 11. 오후 2:41:22
+// 생성: 2026. 6. 17. (kpi dot 수정)
 // 기준월: 2026-05
 // ─────────────────────────────────────────────
 const ALL_DATA = {
@@ -9,7 +9,7 @@ const ALL_DATA = {
       "totalCases": 7756,
       "rejectAmt": 3500390,
       "eduCount": 65,
-      "kpiCount": 61
+      "kpiCount": 0
     },
     "reason": [
       {
@@ -39,8 +39,60 @@ const ALL_DATA = {
     ],
     "material": [
       {
-        "label": "미분류",
-        "amount": 423123892
+        "label": "7. 동화_기타",
+        "amount": 134625294
+      },
+      {
+        "label": "8. HHCK",
+        "amount": 132308196
+      },
+      {
+        "label": "6-1. 바르지오류",
+        "amount": 32789178
+      },
+      {
+        "label": "6-8. 겔류",
+        "amount": 30194412
+      },
+      {
+        "label": "6-6. 화이투벤류",
+        "amount": 24949770
+      },
+      {
+        "label": "6-5. 기타활명수",
+        "amount": 23036192
+      },
+      {
+        "label": "6-2. 미니온",
+        "amount": 15298635
+      },
+      {
+        "label": "1. 까스큐",
+        "amount": 12188109
+      },
+      {
+        "label": "4. 잇치류",
+        "amount": 10633904
+      },
+      {
+        "label": "6-7. 큐립",
+        "amount": 2104320
+      },
+      {
+        "label": "6.-3. 알보칠",
+        "amount": 1857151
+      },
+      {
+        "label": "6-4. 판콜에이치",
+        "amount": 1790800
+      },
+      {
+        "label": "2.후시딘",
+        "amount": 1323840
+      },
+      {
+        "label": "미확인",
+        "amount": 24091
       }
     ],
     "team": [
@@ -849,313 +901,7 @@ const ALL_DATA = {
         "courseName": "남부 약국2팀 02코스"
       }
     ],
-    "kpi": [
-      {
-        "code": 111101,
-        "name": "서장원",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111104,
-        "name": "이정선",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111105,
-        "name": "강병찬",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111106,
-        "name": "정원식",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111107,
-        "name": "이상용",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111201,
-        "name": "고민석",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111205,
-        "name": "정홍의",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111206,
-        "name": "박현진",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111207,
-        "name": "신동운",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 131102,
-        "name": "김효원",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131103,
-        "name": "고명준",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131104,
-        "name": "성지용",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131106,
-        "name": "김동은",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131108,
-        "name": "강주영",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 141103,
-        "name": "유제명",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141105,
-        "name": "박세주",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141205,
-        "name": "유효재",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141206,
-        "name": "윤영진",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141207,
-        "name": "정연승",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141208,
-        "name": "천기원",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 211101,
-        "name": "김동우",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211102,
-        "name": "홍장선",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211103,
-        "name": "이창진",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211104,
-        "name": "길근영",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211105,
-        "name": "황호정",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211106,
-        "name": "이종석",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 231101,
-        "name": "전웅배",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231103,
-        "name": "이승복",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231104,
-        "name": "김승호",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231105,
-        "name": "최용호",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231106,
-        "name": "권혁진",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231107,
-        "name": "황철민",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231201,
-        "name": "공수근",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231202,
-        "name": "문승훈",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231205,
-        "name": "김성훈",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 311104,
-        "name": "조성희",
-        "team": "원주 약국팀"
-      },
-      {
-        "code": 411103,
-        "name": "김현구",
-        "team": "대전 약국팀"
-      },
-      {
-        "code": 411106,
-        "name": "김호식",
-        "team": "대전 약국팀"
-      },
-      {
-        "code": 451103,
-        "name": "고대협",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451104,
-        "name": "천의수",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451105,
-        "name": "유덕균",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 511101,
-        "name": "최수범",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511102,
-        "name": "최정연",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511103,
-        "name": "남길우",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511104,
-        "name": "김현웅",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 551102,
-        "name": "한동엽",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 551103,
-        "name": "추교범",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 551104,
-        "name": "이인권",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 611102,
-        "name": "길민식",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611103,
-        "name": "김상재",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611104,
-        "name": "조성현",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611106,
-        "name": "김태현",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611201,
-        "name": "정종엽",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611203,
-        "name": "정영도",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611205,
-        "name": "윤근석",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611207,
-        "name": "김민우",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 621105,
-        "name": "강성준",
-        "team": "창원 약국팀"
-      },
-      {
-        "code": 651102,
-        "name": "심규환",
-        "team": "대구 약국1팀"
-      },
-      {
-        "code": 651104,
-        "name": "이우창",
-        "team": "대구 약국1팀"
-      },
-      {
-        "code": 651201,
-        "name": "김상진",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 651205,
-        "name": "장성욱",
-        "team": "대구 약국2팀"
-      }
-    ],
+    "kpi": [],
     "reject": [
       {
         "dept": "약국영업1부",
@@ -1301,7 +1047,7 @@ const ALL_DATA = {
       "totalCases": 7892,
       "rejectAmt": 2745450,
       "eduCount": 56,
-      "kpiCount": 56
+      "kpiCount": 0
     },
     "reason": [
       {
@@ -1331,8 +1077,60 @@ const ALL_DATA = {
     ],
     "material": [
       {
-        "label": "미분류",
-        "amount": 377436817
+        "label": "7. 동화_기타",
+        "amount": 138621835
+      },
+      {
+        "label": "8. HHCK",
+        "amount": 75781078
+      },
+      {
+        "label": "6-8. 겔류",
+        "amount": 38667328
+      },
+      {
+        "label": "6-1. 바르지오류",
+        "amount": 29114266
+      },
+      {
+        "label": "6-6. 화이투벤류",
+        "amount": 26534181
+      },
+      {
+        "label": "6-5. 기타활명수",
+        "amount": 22968010
+      },
+      {
+        "label": "6-2. 미니온",
+        "amount": 18282821
+      },
+      {
+        "label": "4. 잇치류",
+        "amount": 11587572
+      },
+      {
+        "label": "1. 까스큐",
+        "amount": 5664882
+      },
+      {
+        "label": "6-4. 판콜에이치",
+        "amount": 3615400
+      },
+      {
+        "label": "6-7. 큐립",
+        "amount": 2536320
+      },
+      {
+        "label": "6.-3. 알보칠",
+        "amount": 2274284
+      },
+      {
+        "label": "2.후시딘",
+        "amount": 1671840
+      },
+      {
+        "label": "9. TKD",
+        "amount": 117000
       }
     ],
     "team": [
@@ -2051,288 +1849,7 @@ const ALL_DATA = {
         "courseName": "청주 약국팀 03코스"
       }
     ],
-    "kpi": [
-      {
-        "code": 111101,
-        "name": "서장원",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111104,
-        "name": "이정선",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111106,
-        "name": "정원식",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111107,
-        "name": "이상용",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111203,
-        "name": "김경태",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111204,
-        "name": "이호준",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111205,
-        "name": "정홍의",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111206,
-        "name": "박현진",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 131101,
-        "name": "임태인",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131102,
-        "name": "김효원",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131103,
-        "name": "고명준",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131107,
-        "name": "조충욱",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131108,
-        "name": "강주영",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 141101,
-        "name": "이세영",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141102,
-        "name": "정준혁",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141103,
-        "name": "유제명",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141105,
-        "name": "박세주",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141202,
-        "name": "이광현",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141203,
-        "name": "김종철",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141205,
-        "name": "유효재",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141206,
-        "name": "윤영진",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141207,
-        "name": "정연승",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141208,
-        "name": "천기원",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 211103,
-        "name": "이창진",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211104,
-        "name": "길근영",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211105,
-        "name": "황호정",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211106,
-        "name": "이종석",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 231201,
-        "name": "공수근",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231202,
-        "name": "문승훈",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231203,
-        "name": "한상태",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231204,
-        "name": "이상준",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 311103,
-        "name": "정현준",
-        "team": "원주 약국팀"
-      },
-      {
-        "code": 311104,
-        "name": "조성희",
-        "team": "원주 약국팀"
-      },
-      {
-        "code": 411101,
-        "name": "박진수",
-        "team": "대전 약국팀"
-      },
-      {
-        "code": 411102,
-        "name": "고천수",
-        "team": "대전 약국팀"
-      },
-      {
-        "code": 451102,
-        "name": "손효동",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451103,
-        "name": "고대협",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451104,
-        "name": "천의수",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 511101,
-        "name": "최수범",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511105,
-        "name": "심재일",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 551103,
-        "name": "추교범",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 551104,
-        "name": "이인권",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 611102,
-        "name": "길민식",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611103,
-        "name": "김상재",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611104,
-        "name": "조성현",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611106,
-        "name": "김태현",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611201,
-        "name": "정종엽",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611203,
-        "name": "정영도",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611205,
-        "name": "윤근석",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611207,
-        "name": "김민우",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 621101,
-        "name": "이상열",
-        "team": "창원 약국팀"
-      },
-      {
-        "code": 621105,
-        "name": "강성준",
-        "team": "창원 약국팀"
-      },
-      {
-        "code": 651102,
-        "name": "심규환",
-        "team": "대구 약국1팀"
-      },
-      {
-        "code": 651103,
-        "name": "김정규",
-        "team": "대구 약국1팀"
-      },
-      {
-        "code": 651201,
-        "name": "김상진",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 651205,
-        "name": "장성욱",
-        "team": "대구 약국2팀"
-      }
-    ],
+    "kpi": [],
     "reject": [
       {
         "dept": "약국영업1부",
@@ -2414,7 +1931,7 @@ const ALL_DATA = {
       "totalCases": 10078,
       "rejectAmt": 2910560,
       "eduCount": 45,
-      "kpiCount": 45
+      "kpiCount": 20
     },
     "reason": [
       {
@@ -2444,8 +1961,60 @@ const ALL_DATA = {
     ],
     "material": [
       {
-        "label": "미분류",
-        "amount": 709708846
+        "label": "7. 동화_기타",
+        "amount": 130670954
+      },
+      {
+        "label": "8. HHCK",
+        "amount": 93330859
+      },
+      {
+        "label": "6-8. 겔류",
+        "amount": 35829340
+      },
+      {
+        "label": "6-6. 화이투벤류",
+        "amount": 32523325
+      },
+      {
+        "label": "6-1. 바르지오류",
+        "amount": 29434921
+      },
+      {
+        "label": "6-2. 미니온",
+        "amount": 18980410
+      },
+      {
+        "label": "6-5. 기타활명수",
+        "amount": 14483288
+      },
+      {
+        "label": "4. 잇치류",
+        "amount": 12792940
+      },
+      {
+        "label": "6-4. 판콜에이치",
+        "amount": 6046806
+      },
+      {
+        "label": "1. 까스큐",
+        "amount": 2739673
+      },
+      {
+        "label": "6-7. 큐립",
+        "amount": 2128160
+      },
+      {
+        "label": "6.-3. 알보칠",
+        "amount": 1562750
+      },
+      {
+        "label": "미확인",
+        "amount": 84000
+      },
+      {
+        "label": "2.후시딘",
+        "amount": 3360
       }
     ],
     "team": [
@@ -3064,229 +2633,344 @@ const ALL_DATA = {
     ],
     "kpi": [
       {
+        "team": "중부 약국1팀",
         "code": 111101,
         "name": "서장원",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국1팀",
         "code": 111104,
         "name": "이정선",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 111105,
-        "name": "강병찬",
-        "team": "중부 약국1팀"
-      },
-      {
+        "team": "중부 약국1팀",
         "code": 111106,
         "name": "정원식",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국1팀",
         "code": 111107,
         "name": "이상용",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 111108,
-        "name": "김동현",
-        "team": "중부 약국1팀"
-      },
-      {
-        "code": 111201,
-        "name": "고민석",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111204,
-        "name": "이호준",
-        "team": "중부 약국2팀"
-      },
-      {
+        "team": "중부 약국2팀",
         "code": 111205,
         "name": "정홍의",
-        "team": "중부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국2팀",
         "code": 111206,
         "name": "박현진",
-        "team": "중부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 111207,
-        "name": "신동운",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 131101,
-        "name": "임태인",
-        "team": "동부 약국팀"
-      },
-      {
+        "team": "동부 약국팀",
         "code": 131102,
         "name": "김효원",
-        "team": "동부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "동부 약국팀",
         "code": 131103,
-        "name": "김동일",
-        "team": "동부 약국팀"
+        "name": "고명준",
+        "m01": false,
+        "m02": false,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 131104,
-        "name": "성지용",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131107,
-        "name": "조충욱",
-        "team": "동부 약국팀"
-      },
-      {
+        "team": "동부 약국팀",
         "code": 131108,
         "name": "강주영",
-        "team": "동부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141102,
-        "name": "정준혁",
-        "team": "북부 약국1팀"
-      },
-      {
+        "team": "북부 약국1팀",
         "code": 141103,
         "name": "유제명",
-        "team": "북부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141104,
-        "name": "최선웅",
-        "team": "북부 약국1팀"
-      },
-      {
+        "team": "북부 약국1팀",
         "code": 141105,
         "name": "박세주",
-        "team": "북부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141201,
-        "name": "강호재",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141202,
-        "name": "이광현",
-        "team": "북부 약국2팀"
-      },
-      {
-        "code": 141203,
-        "name": "김종철",
-        "team": "북부 약국2팀"
-      },
-      {
+        "team": "북부 약국2팀",
         "code": 141205,
         "name": "유효재",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141206,
         "name": "윤영진",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141207,
         "name": "정연승",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141208,
         "name": "천기원",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 211101,
-        "name": "김동우",
-        "team": "서부 약국팀"
-      },
-      {
+        "team": "서부 약국팀",
         "code": 211103,
         "name": "이창진",
-        "team": "서부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "서부 약국팀",
         "code": 211104,
         "name": "길근영",
-        "team": "서부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 231101,
-        "name": "전웅배",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231103,
-        "name": "이승복",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231105,
-        "name": "최용호",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231204,
-        "name": "이상준",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 451101,
-        "name": "정준기",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451105,
-        "name": "유덕균",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451106,
-        "name": "김정범",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 511103,
-        "name": "남길우",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511104,
-        "name": "김현웅",
-        "team": "광주 약국팀"
-      },
-      {
+        "team": "전주 약국팀",
         "code": 551103,
         "name": "추교범",
-        "team": "전주 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": false,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 611206,
-        "name": "오종훈",
-        "team": "부산 약국2팀"
-      },
-      {
+        "team": "부산 약국2팀",
         "code": 611207,
         "name": "김민우",
-        "team": "부산 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "대구 약국2팀",
         "code": 651201,
         "name": "김상진",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 651204,
-        "name": "김민헌",
-        "team": "대구 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       }
     ],
     "reject": [
@@ -3346,7 +3030,7 @@ const ALL_DATA = {
       "totalCases": 12819,
       "rejectAmt": 5597099,
       "eduCount": 87,
-      "kpiCount": 87
+      "kpiCount": 25
     },
     "reason": [
       {
@@ -3376,8 +3060,60 @@ const ALL_DATA = {
     ],
     "material": [
       {
-        "label": "미분류",
-        "amount": 713625438
+        "label": "8. HHCK",
+        "amount": 201303712
+      },
+      {
+        "label": "7. 동화_기타",
+        "amount": 177071570
+      },
+      {
+        "label": "6-6. 화이투벤류",
+        "amount": 66293264
+      },
+      {
+        "label": "6-8. 겔류",
+        "amount": 48145491
+      },
+      {
+        "label": "6-1. 바르지오류",
+        "amount": 43860688
+      },
+      {
+        "label": "6-2. 미니온",
+        "amount": 27178606
+      },
+      {
+        "label": "6-5. 기타활명수",
+        "amount": 15623736
+      },
+      {
+        "label": "4. 잇치류",
+        "amount": 15601532
+      },
+      {
+        "label": "6-4. 판콜에이치",
+        "amount": 10312500
+      },
+      {
+        "label": "6.-3. 알보칠",
+        "amount": 4125955
+      },
+      {
+        "label": "6-7. 큐립",
+        "amount": 3329120
+      },
+      {
+        "label": "1. 까스큐",
+        "amount": 2826907
+      },
+      {
+        "label": "2.후시딘",
+        "amount": 36960
+      },
+      {
+        "label": "3. 판콜",
+        "amount": 35433
       }
     ],
     "team": [
@@ -4416,439 +4152,446 @@ const ALL_DATA = {
     ],
     "kpi": [
       {
+        "team": "중부 약국1팀",
         "code": 111101,
         "name": "서장원",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 111103,
-        "name": "정재헌",
-        "team": "중부 약국1팀"
-      },
-      {
+        "team": "중부 약국1팀",
         "code": 111104,
         "name": "이정선",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국1팀",
         "code": 111106,
         "name": "정원식",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국1팀",
         "code": 111107,
         "name": "이상용",
-        "team": "중부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 111201,
-        "name": "고민석",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111202,
-        "name": "이상철",
-        "team": "중부 약국2팀"
-      },
-      {
-        "code": 111203,
-        "name": "김경태",
-        "team": "중부 약국2팀"
-      },
-      {
+        "team": "중부 약국2팀",
         "code": 111204,
         "name": "이호준",
-        "team": "중부 약국2팀"
+        "m01": false,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국2팀",
         "code": 111205,
         "name": "정홍의",
-        "team": "중부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "중부 약국2팀",
         "code": 111206,
         "name": "박현진",
-        "team": "중부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 111207,
-        "name": "신동운",
-        "team": "중부 약국2팀"
-      },
-      {
+        "team": "동부 약국팀",
         "code": 131101,
-        "name": "고명준",
-        "team": "동부 약국팀"
+        "name": "임태인",
+        "m01": false,
+        "m02": true,
+        "m03": false,
+        "m04": false,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "동부 약국팀",
         "code": 131102,
         "name": "김효원",
-        "team": "동부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "동부 약국팀",
         "code": 131103,
-        "name": "김동일",
-        "team": "동부 약국팀"
+        "name": "고명준",
+        "m01": false,
+        "m02": false,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 131104,
-        "name": "성지용",
-        "team": "동부 약국팀"
-      },
-      {
-        "code": 131106,
-        "name": "김동은",
-        "team": "동부 약국팀"
-      },
-      {
+        "team": "동부 약국팀",
         "code": 131107,
         "name": "조충욱",
-        "team": "동부 약국팀"
+        "m01": false,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "동부 약국팀",
         "code": 131108,
         "name": "강주영",
-        "team": "동부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141101,
-        "name": "이세영",
-        "team": "북부 약국1팀"
-      },
-      {
+        "team": "북부 약국1팀",
         "code": 141102,
         "name": "정준혁",
-        "team": "북부 약국1팀"
+        "m01": false,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국1팀",
         "code": 141103,
         "name": "유제명",
-        "team": "북부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141104,
-        "name": "최선웅",
-        "team": "북부 약국1팀"
-      },
-      {
+        "team": "북부 약국1팀",
         "code": 141105,
         "name": "박세주",
-        "team": "북부 약국1팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141106,
-        "name": "신영권",
-        "team": "북부 약국1팀"
-      },
-      {
-        "code": 141201,
-        "name": "강호재",
-        "team": "북부 약국2팀"
-      },
-      {
+        "team": "북부 약국2팀",
         "code": 141202,
         "name": "이광현",
-        "team": "북부 약국2팀"
+        "m01": false,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141203,
         "name": "김종철",
-        "team": "북부 약국2팀"
+        "m01": false,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 141204,
-        "name": "진준기",
-        "team": "북부 약국2팀"
-      },
-      {
+        "team": "북부 약국2팀",
         "code": 141205,
         "name": "유효재",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141206,
         "name": "윤영진",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141207,
         "name": "정연승",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "북부 약국2팀",
         "code": 141208,
         "name": "천기원",
-        "team": "북부 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 211101,
-        "name": "김동우",
-        "team": "서부 약국팀"
-      },
-      {
+        "team": "서부 약국팀",
         "code": 211103,
         "name": "이창진",
-        "team": "서부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
+        "team": "서부 약국팀",
         "code": 211104,
         "name": "길근영",
-        "team": "서부 약국팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": false,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 211105,
-        "name": "황호정",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211106,
-        "name": "이종석",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 211107,
-        "name": "유세연",
-        "team": "서부 약국팀"
-      },
-      {
-        "code": 231101,
-        "name": "전웅배",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231102,
-        "name": "이인성",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231103,
-        "name": "이승복",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231104,
-        "name": "김승호",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231105,
-        "name": "최용호",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231106,
-        "name": "권혁진",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231107,
-        "name": "황철민",
-        "team": "남부 약국1팀"
-      },
-      {
-        "code": 231201,
-        "name": "공수근",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231202,
-        "name": "문승훈",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231203,
-        "name": "한상태",
-        "team": "남부 약국2팀"
-      },
-      {
+        "team": "남부 약국2팀",
         "code": 231204,
         "name": "이상준",
-        "team": "남부 약국2팀"
+        "m01": false,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 231205,
-        "name": "김성훈",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 231207,
-        "name": "이종진",
-        "team": "남부 약국2팀"
-      },
-      {
-        "code": 311104,
-        "name": "조성희",
-        "team": "원주 약국팀"
-      },
-      {
-        "code": 311105,
-        "name": "김건수",
-        "team": "원주 약국팀"
-      },
-      {
-        "code": 411101,
-        "name": "한동엽",
-        "team": "대전 약국팀"
-      },
-      {
-        "code": 411103,
-        "name": "김현구",
-        "team": "대전 약국팀"
-      },
-      {
-        "code": 451101,
-        "name": "정준기",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451103,
-        "name": "고대협",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451104,
-        "name": "천의수",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451105,
-        "name": "유덕균",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 451106,
-        "name": "김정범",
-        "team": "청주 약국팀"
-      },
-      {
-        "code": 511102,
-        "name": "최정연",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511103,
-        "name": "남길우",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511104,
-        "name": "김현웅",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 511105,
-        "name": "심재일",
-        "team": "광주 약국팀"
-      },
-      {
-        "code": 551102,
-        "name": "이건화",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 551104,
-        "name": "이인권",
-        "team": "전주 약국팀"
-      },
-      {
-        "code": 611101,
-        "name": "황인호",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611102,
-        "name": "길민식",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611103,
-        "name": "김상재",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611104,
-        "name": "조성현",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611105,
-        "name": "김상철",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611106,
-        "name": "김태현",
-        "team": "부산 약국1팀"
-      },
-      {
-        "code": 611201,
-        "name": "정종엽",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611203,
-        "name": "정영도",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611205,
-        "name": "윤근석",
-        "team": "부산 약국2팀"
-      },
-      {
-        "code": 611206,
-        "name": "오종훈",
-        "team": "부산 약국2팀"
-      },
-      {
+        "team": "부산 약국2팀",
         "code": 611207,
         "name": "김민우",
-        "team": "부산 약국2팀"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       },
       {
-        "code": 621104,
-        "name": "유웅재",
-        "team": "창원 약국팀"
-      },
-      {
-        "code": 621105,
-        "name": "강성준",
-        "team": "창원 약국팀"
-      },
-      {
-        "code": 651104,
-        "name": "이우창",
-        "team": "대구 약국1팀"
-      },
-      {
-        "code": 651105,
-        "name": "정수필",
-        "team": "대구 약국1팀"
-      },
-      {
+        "team": "대구 약국2팀",
         "code": 651201,
         "name": "김상진",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 651202,
-        "name": "이건섭",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 651203,
-        "name": "박성일",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 651204,
-        "name": "김민헌",
-        "team": "대구 약국2팀"
-      },
-      {
-        "code": 771201,
-        "name": "김대현",
-        "team": "약국영업B"
+        "m01": true,
+        "m02": true,
+        "m03": true,
+        "m04": true,
+        "m05": true,
+        "m06": false,
+        "m07": false,
+        "m08": false,
+        "m09": false,
+        "m10": false,
+        "m11": false,
+        "m12": false
       }
     ],
     "reject": [
@@ -4900,7 +4643,7 @@ const ALL_DATA = {
       "totalCases": 10433,
       "rejectAmt": 4932963,
       "eduCount": 58,
-      "kpiCount": 42
+      "kpiCount": 24
     },
     "reason": [
       {
@@ -4930,8 +4673,60 @@ const ALL_DATA = {
     ],
     "material": [
       {
-        "label": "미분류",
-        "amount": 762586812
+        "label": "7. 동화_기타",
+        "amount": 113283057
+      },
+      {
+        "label": "8. HHCK",
+        "amount": 97680445
+      },
+      {
+        "label": "6-6. 화이투벤류",
+        "amount": 56821791
+      },
+      {
+        "label": "6-1. 바르지오류",
+        "amount": 36675470
+      },
+      {
+        "label": "6-8. 겔류",
+        "amount": 32578126
+      },
+      {
+        "label": "6-2. 미니온",
+        "amount": 22110957
+      },
+      {
+        "label": "6-5. 기타활명수",
+        "amount": 7986426
+      },
+      {
+        "label": "4. 잇치류",
+        "amount": 7823324
+      },
+      {
+        "label": "6-4. 판콜에이치",
+        "amount": 6734900
+      },
+      {
+        "label": "1. 까스큐",
+        "amount": 6302390
+      },
+      {
+        "label": "6.-3. 알보칠",
+        "amount": 2612944
+      },
+      {
+        "label": "6-7. 큐립",
+        "amount": 1490800
+      },
+      {
+        "label": "미확인",
+        "amount": 135473
+      },
+      {
+        "label": "3. 판콜",
+        "amount": 2273
       }
     ],
     "team": [
@@ -5704,7 +5499,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -5806,7 +5601,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -5838,9 +5633,9 @@ const ALL_DATA = {
         "name": "임태인",
         "m01": false,
         "m02": true,
-        "m03": true,
-        "m04": true,
-        "m05": true,
+        "m03": false,
+        "m04": false,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -5870,8 +5665,8 @@ const ALL_DATA = {
         "team": "동부 약국팀",
         "code": 131103,
         "name": "고명준",
-        "m01": true,
-        "m02": true,
+        "m01": false,
+        "m02": false,
         "m03": true,
         "m04": true,
         "m05": true,
@@ -5925,7 +5720,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -5976,7 +5771,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6061,7 +5856,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6078,7 +5873,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6112,7 +5907,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6146,7 +5941,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6163,7 +5958,7 @@ const ALL_DATA = {
         "m02": true,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6180,7 +5975,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6197,7 +5992,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6265,7 +6060,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6282,7 +6077,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6299,7 +6094,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6316,7 +6111,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6333,7 +6128,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6384,7 +6179,7 @@ const ALL_DATA = {
         "m02": false,
         "m03": true,
         "m04": true,
-        "m05": true,
+        "m05": false,
         "m06": false,
         "m07": false,
         "m08": false,
@@ -6472,5 +6267,3 @@ const ALL_DATA = {
 };
 
 const MONTH_LIST = ["2026-01","2026-02","2026-03","2026-04","2026-05"];
-
-const CUR_MONTH_DEFAULT = '2026-05';

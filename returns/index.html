@@ -378,6 +378,28 @@ tbody td{padding:9px 13px;color:var(--gray700)}
 
 <!-- ════ MATERIAL ════ -->
 <div class="page" id="pg-material">
+  <!-- 매출/달성현황 섹션 -->
+  <div class="card mb20">
+    <div class="card-hdr">
+      <div class="card-title">📊 약국영업부 매출 달성현황</div>
+      <span class="badge badge-blue">영업부별 합산</span>
+    </div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead>
+          <tr>
+            <th>영업부</th>
+            <th class="td-r">매출목표</th>
+            <th class="td-r">감점반품금액</th>
+            <th class="td-r">반품율</th>
+            <th class="td-r">교육대상 팀수</th>
+          </tr>
+        </thead>
+        <tbody id="mat-sales-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="alert alert-blue">
     <div class="alert-icon">ℹ️</div>
     <div>
@@ -579,7 +601,7 @@ tbody td{padding:9px 13px;color:var(--gray700)}
 
 </div><!-- /content -->
 
-<!-- ※ 데이터 인라인 포함 (Data Converter로 생성한 data.js를 덮어쓰거나 아래 직접 수정) -->
+<!-- data.js는 같은 폴더에 위치해야 합니다 (Data Converter로 생성) -->
 <script src="data.js"></script>
 <script>
 // ═══════════════════════════════════════════════
@@ -782,6 +804,52 @@ function renderReasonTable(){
     </tr>`).join('');
 }
 
+function renderMatSalesTable(){
+  // 부서별 집계: team 데이터에서 영업부 단위로 합산
+  const deptOrder=['약국영업1부','약국영업2부','약국영업3부'];
+  const deptColors={'약국영업1부':'var(--blue600)','약국영업2부':'var(--purple600)','약국영업3부':'var(--orange600)'};
+  const deptMap={};
+  deptOrder.forEach(d=>{ deptMap[d]={target:0,amount:0,eduTeams:0,totalTeams:0}; });
+  D.team.forEach(t=>{
+    if(!deptMap[t.dept]) return;
+    deptMap[t.dept].target += t.target||0;
+    deptMap[t.dept].amount += t.amount||0;
+    deptMap[t.dept].totalTeams++;
+    if((t.rate||0)>=3) deptMap[t.dept].eduTeams++;
+  });
+  // 전체 합산 행
+  const totTarget = deptOrder.reduce((s,d)=>s+deptMap[d].target,0);
+  const totAmount = deptOrder.reduce((s,d)=>s+deptMap[d].amount,0);
+  const totEdu    = deptOrder.reduce((s,d)=>s+deptMap[d].eduTeams,0);
+  const totTeams  = deptOrder.reduce((s,d)=>s+deptMap[d].totalTeams,0);
+  const totRate   = totTarget>0?(totAmount/totTarget*100):0;
+
+  const rows = deptOrder.map(d=>{
+    const v=deptMap[d];
+    const rate = v.target>0?(v.amount/v.target*100):0;
+    const rateClass = rate>=10?'rate-crit':rate>=6?'rate-high':rate>=3?'rate-med':'rate-ok';
+    const color = deptColors[d]||'var(--gray500)';
+    return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${color};margin-right:6px;vertical-align:middle"></span><strong>${d}</strong></td>
+      <td class="td-r" style="font-weight:600">${fmt(v.target)}</td>
+      <td class="td-r" style="color:var(--red600);font-weight:600">${fmt(v.amount)}</td>
+      <td class="td-c"><span class="rate ${rateClass}">${rate.toFixed(2)}%</span></td>
+      <td class="td-c" style="color:var(--gray600)">${v.eduTeams}/${v.totalTeams} 팀</td>
+    </tr>`;
+  }).join('');
+
+  const totRateClass = totRate>=10?'rate-crit':totRate>=6?'rate-high':totRate>=3?'rate-med':'rate-ok';
+  const totalRow = `<tr style="background:var(--gray50);font-weight:700;border-top:2px solid var(--gray200)">
+    <td>📊 합계</td>
+    <td class="td-r" style="font-weight:700">${fmt(totTarget)}</td>
+    <td class="td-r" style="color:var(--red600);font-weight:700">${fmt(totAmount)}</td>
+    <td class="td-c"><span class="rate ${totRateClass}">${totRate.toFixed(2)}%</span></td>
+    <td class="td-c" style="color:var(--gray600)">${totEdu}/${totTeams} 팀</td>
+  </tr>`;
+
+  document.getElementById('mat-sales-tbl').innerHTML = rows + totalRow;
+}
+
 function renderMatTable(){
   const total=D.material.reduce((s,m)=>s+m.amount,0);
   document.getElementById('mat-tbl').innerHTML=D.material.map((m,i)=>{
@@ -867,13 +935,31 @@ function applyEduFilter(){
 }
 
 function renderKpiTable(){
+  // ── m 필드(m01~m12)가 있는 최신 월 데이터 찾기 (fallback용) ──
+  const kpiHasDots = (kpiArr) => kpiArr.length > 0 && Object.keys(kpiArr[0]).some(k => /^m\d{2}$/.test(k));
+  let latestKpiData = D.kpi; // 현재 선택월 기본값
+  let latestKpiMonth = CUR_MONTH;
+  if (!kpiHasDots(D.kpi)) {
+    // 선택월에 dot 없으면 → ALL_DATA에서 m필드 있는 가장 최신 월 검색
+    const sortedMonths = Object.keys(ALL_DATA).sort().reverse();
+    for (const mo of sortedMonths) {
+      if (kpiHasDots(ALL_DATA[mo].kpi || [])) {
+        latestKpiData = ALL_DATA[mo].kpi;
+        latestKpiMonth = mo;
+        break;
+      }
+    }
+  }
+  const usingFallback = latestKpiMonth !== CUR_MONTH;
+
   // ── 현재 월 기준으로 연속 3개월 판정 범위 계산 ──
   // m01=1월 ... m05=5월, 현재 월의 숫자 추출
-  const curMo = parseInt(CUR_MONTH.split('-')[1]); // 1~12
+  // ★ 선택된 월(CUR_MONTH) 기준으로 moIdx 계산 — fallback월 기준으로 하면
+  //   1월·2월 선택 시에도 최신월(5월) 기준으로 계산되어 42명이 표시되는 버그 발생
+  const curMo = parseInt(CUR_MONTH.split('-')[1]); // 선택 월 기준
   // 데이터에 있는 월 키 목록 (m01~m05)
   const ALL_MONTH_KEYS = ['m01','m02','m03','m04','m05'];
   // 현재 월이 데이터상 몇 번째인지 (1-indexed: m01=1, m05=5)
-  // CUR_MONTH = "2026-05" → curMo=5 → moIdx=5
   const moIdx = curMo; // m01~m05 대응이 1~5월이므로 동일
 
   // 연속 3개월: (moIdx-2), (moIdx-1), moIdx 월이 모두 true
@@ -886,9 +972,9 @@ function renderKpiTable(){
     ? [`${moIdx-2}월`, `${moIdx-1}월`, `${moIdx}월`]
     : [];
 
-  // 연속 대상자: 3개 키 모두 true인 사람
+  // 연속 대상자: 3개 키 모두 true인 사람 (fallback 데이터 사용)
   const eligible = hasPeriod
-    ? D.kpi.filter(d => mKeys.every(k => d[k]))
+    ? latestKpiData.filter(d => mKeys.every(k => d[k]))
     : [];
 
   // UI 텍스트 업데이트
@@ -924,7 +1010,12 @@ function renderKpiTable(){
         ${hasPeriod ? 'KPI 감점 대상자 없음' : '1·2월은 연속 3개월 판정 불가'}
       </td></tr>`;
   } else {
-    document.getElementById('kpi-tbl').innerHTML = eligible.map((d,i)=>{
+    // fallback 안내 배너
+    const fallbackBanner = usingFallback
+      ? `<tr><td colspan="${visibleMoIdxs.length+5}" style="background:var(--blue50);color:var(--blue600);padding:8px 12px;font-size:12px;border-bottom:1px solid var(--blue100)">
+          ℹ️ ${CUR_MONTH.replace('-','년 ')}월 기준 월별 판정 데이터가 없어 <strong>${latestKpiMonth.replace('-','년 ')}월 데이터</strong> 기준으로 표시합니다.
+        </td></tr>` : '';
+    document.getElementById('kpi-tbl').innerHTML = fallbackBanner + eligible.map((d,i)=>{
       const mDots = visibleMoIdxs.map(m => {
         const k = `m${String(m).padStart(2,'0')}`;
         return `<td class="td-c">${mdot(d[k], m+'')}</td>`;
@@ -1081,6 +1172,7 @@ function renderAll(){
   renderReasonTable();
 
   // Material page
+  renderMatSalesTable();
   renderBars('mat-bars-detail',D.material,MAT_COLORS);
   drawDonut(document.getElementById('c-mat-donut'),D.material.slice(0,8),MAT_COLORS,'mat-legend','자재구분');
   renderMatTable();

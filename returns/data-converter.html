@@ -400,6 +400,29 @@ tbody tr:hover{background:var(--blue50)}
 
   </div><!-- /upload-grid-2 fixed -->
 
+  <!-- 대시보드 HTML 업로드 -->
+  <div class="sec-label">🔄 대시보드 자동 업데이트 <span style="font-weight:400;font-size:12px;color:var(--gray400)">(선택 — 업로드 시 ALL_DATA 교체된 index.html 함께 다운로드)</span></div>
+  <div class="ucard" id="card-dashboard" style="margin-bottom:20px">
+    <div class="ucard-hdr">
+      <div class="ucard-icon" style="background:#faf5ff">🖥️</div>
+      <div class="ucard-meta">
+        <div class="ucard-num" style="color:#9333ea">+</div>
+        <div class="ucard-title">대시보드 index.html</div>
+        <div class="ucard-desc">업로드하면 변환 완료 시 내부 ALL_DATA가 자동 교체된 <strong>새 index.html도 함께 다운로드</strong>됩니다</div>
+      </div>
+      <div class="ucard-badge" style="background:#faf5ff;color:#9333ea;border:1px solid #e9d5ff">선택</div>
+    </div>
+    <div class="ucard-body">
+      <div class="dropzone" id="dz-dashboard" ondragover="dzDrag(event,'dashboard')" ondragleave="dzLeave(event,'dashboard')" ondrop="dzDrop(event,'dashboard')">
+        <input type="file" accept=".html" onchange="handleDashboardFile(event)">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text"><strong>클릭 또는 드래그</strong>하여 업로드</div>
+        <div class="drop-hint">index.html · 반품분석 대시보드 파일</div>
+      </div>
+      <div class="file-status" id="fs-dashboard"></div>
+    </div>
+  </div>
+
   <!-- GENERATE -->
   <div class="gen-wrap">
     <button class="gen-btn" id="gen-btn" onclick="generate()" disabled>
@@ -439,6 +462,7 @@ const STATE = {
   sheets: {
     returns:{}, target:{}, staff:{}, kpi:{}, code:{}, material:{}
   },
+  dashboardHTML: null,  // index.html 텍스트 (선택)
 };
 
 // 감지된 월 목록 (key → [YYYYMM, ...])
@@ -461,7 +485,9 @@ function dzLeave(e,key){document.getElementById('dz-'+key).classList.remove('dra
 function dzDrop(e,key){
   e.preventDefault();
   document.getElementById('dz-'+key).classList.remove('drag');
-  const f=e.dataTransfer.files[0]; if(f) readExcel(f,key);
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  if(key==='dashboard'){ handleDashboardFile({target:{files:[f]}}); }
+  else { readExcel(f,key); }
 }
 function handleFile(e,key){const f=e.target.files[0]; if(f) readExcel(f,key);}
 
@@ -775,6 +801,41 @@ function generate(){
   const jsContent=buildJS(ALL_DATA, latestKey);
   downloadText(jsContent,'data.js','text/javascript');
   log('\n📥 data.js 다운로드 완료 — 대시보드와 같은 폴더에 저장하세요.','ok');
+
+  // ── index.html ALL_DATA 자동 교체 (대시보드 파일 업로드된 경우) ──
+  if(STATE.dashboardHTML){
+    try{
+      const html = STATE.dashboardHTML;
+      const marker = 'const ALL_DATA = ';
+      const markerIdx = html.indexOf(marker);
+      if(markerIdx === -1) throw new Error('index.html에서 const ALL_DATA = 를 찾을 수 없습니다.');
+
+      const dataStart = markerIdx + marker.length;
+      // ALL_DATA 객체 끝 위치 찾기 (중괄호 depth 추적)
+      let depth=0, i=dataStart;
+      while(i < html.length){
+        if(html[i]==='{') depth++;
+        else if(html[i]==='}'){depth--; if(depth===0){i++;break;}}
+        i++;
+      }
+
+      // data.js에서 ALL_DATA 객체만 추출
+      const jsStart = jsContent.indexOf('const ALL_DATA = ') + 'const ALL_DATA = '.length;
+      let jdepth=0, j=jsStart;
+      while(j < jsContent.length){
+        if(jsContent[j]==='{') jdepth++;
+        else if(jsContent[j]==='}'){jdepth--; if(jdepth===0){j++;break;}}
+        j++;
+      }
+      const newAllData = jsContent.slice(jsStart, j);
+
+      const newHtml = html.slice(0, dataStart) + newAllData + html.slice(i);
+      downloadText(newHtml, 'index.html', 'text/html');
+      log('📥 index.html ALL_DATA 교체 완료 — 새 index.html 다운로드됩니다.','ok');
+    } catch(e) {
+      log(`⚠️ index.html 교체 실패: ${e.message}`,'err');
+    }
+  }
 }
 
 // ─── 판정코드 맵 빌드 ───
@@ -1117,6 +1178,21 @@ function generateMonthList(data){
   return list;
 }
 
+
+// ─── 대시보드 HTML 파일 처리 ───
+function handleDashboardFile(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    STATE.dashboardHTML = e.target.result;
+    document.getElementById('card-dashboard').classList.add('uploaded');
+    document.getElementById('fs-dashboard').innerHTML =
+      `<span style="color:var(--green600)">✅ ${file.name} (${(file.size/1024).toFixed(0)}KB) 로드 완료</span>`;
+    log(`✅ 대시보드 파일 로드: ${file.name}`,'ok');
+  };
+  reader.readAsText(file, 'utf-8');
+}
 
 // ─── 다운로드 ───
 function downloadText(content, filename, mime){
