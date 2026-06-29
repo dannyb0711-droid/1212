@@ -2250,29 +2250,59 @@ function exportDashboard() {
     return true;
   }
 
+  // 파일 상단 주석의 "생성일시: YYYY. M. D. 오전/오후 H:MM:SS"를 파싱해 타임스탬프(ms)로 변환
+  // → data.js.gz와 data.js 중 어느 쪽이 실제로 더 최신 데이터인지 비교하기 위함
+  function parseGenTime(headText) {
+    var m = /생성일시:\s*(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(오전|오후)\s*(\d{1,2}):(\d{2}):(\d{2})/.exec(headText || '');
+    if (!m) return null;
+    var yyyy = parseInt(m[1],10), mo = parseInt(m[2],10)-1, dd = parseInt(m[3],10);
+    var ap = m[4], hh = parseInt(m[5],10), mi = parseInt(m[6],10), ss = parseInt(m[7],10);
+    if (ap === '오후' && hh < 12) hh += 12;
+    if (ap === '오전' && hh === 12) hh = 0;
+    return new Date(yyyy, mo, dd, hh, mi, ss).getTime();
+  }
+
   // data.js.gz (압축) 로드 시도 → 실패하면 data.js (비압축) 로드
+  // 단, data.js.gz가 배포 폴더에 남아있는 "오래된" 파일일 수 있으므로,
+  // 압축 해제 후 data.js 헤더와 생성일시를 비교해 더 최신인 쪽을 사용한다.
   function loadCompressed() {
-    fetch('data.js.gz')
+    var cb = Date.now(); // 캐시 무력화용 (브라우저/CDN이 옛 파일을 들고 있는 것 방지)
+
+    // data.js 상단 주석(생성일시)만 가볍게 먼저 확인 (Range 요청, 실패해도 무방)
+    var plainHeadPromise = fetch('data.js?cb=' + cb, { headers: { 'Range': 'bytes=0-1000' } })
+      .then(function(r) { return r.ok ? r.text() : ''; })
+      .catch(function() { return ''; });
+
+    fetch('data.js.gz?cb=' + cb)
       .then(function(res) {
         if (!res.ok) throw new Error('gz not found');
         return res.arrayBuffer();
       })
       .then(function(buf) {
         var decompressed = pako.ungzip(new Uint8Array(buf), { to: 'string' });
-        var script = document.createElement('script');
-        script.textContent = decompressed;
-        document.head.appendChild(script);
-        runInit();
+        return plainHeadPromise.then(function(plainHead) {
+          var gzTime = parseGenTime(decompressed.slice(0, 500));
+          var plainTime = parseGenTime(plainHead);
+          // data.js(평문)가 data.js.gz보다 더 최신 생성일시면 → 압축본을 버리고 평문 사용
+          if (plainTime && gzTime && plainTime > gzTime) {
+            loadPlain(cb);
+            return;
+          }
+          var script = document.createElement('script');
+          script.textContent = decompressed;
+          document.head.appendChild(script);
+          runInit();
+        });
       })
       .catch(function() {
-        loadPlain();
+        loadPlain(cb);
       });
   }
 
   // data.js (비압축) 로드
-  function loadPlain() {
+  function loadPlain(cb) {
     var s = document.createElement('script');
-    s.src = 'data.js';
+    s.src = 'data.js?cb=' + (cb || Date.now());
     s.onload = function() { runInit(); };
     s.onerror = function() {
       removeOverlay();
@@ -2281,7 +2311,7 @@ function exportDashboard() {
     document.body.appendChild(s);
   }
 
-  // data.js.gz 우선 시도 (없으면 data.js 로드)
+  // data.js.gz 우선 시도 (없으면, 또는 data.js가 더 최신이면 data.js 로드)
   loadCompressed();
 })();
 </script>
