@@ -624,11 +624,32 @@ function buildLookups(D) {
   }
 
   // Team leader KPI
+  // 코스코드 불일치(조직도=98, KPI원본=99) 대응: 성명 기반 보정 매핑 추가
+  let TL_KPI_BY_NAME = {};
   for (const r of D.teamLeaderKPI) {
     const c = r['코스'];
     if (c) TL_KPI[c] = r;
     const t = r['영업팀'];
     if (t) TL_BY_TEAM[t] = r;
+    const n = r['성명'] && r['성명'].trim();
+    if (n) TL_KPI_BY_NAME[n] = r;
+  }
+  // orgChart 팀장 기준으로 코스코드 불일치(98↔99) 매핑 보완
+  // - 코드 자체가 없는 경우(신규/불일치)뿐 아니라, 과거 코스 이력이 남아있어
+  //   해당 코드에 2026년 데이터가 전혀 없는 "레거시 중복 코드" 케이스도 함께 보정
+  //   (예: 정재환 141198엔 2025년 이력만 남아있고 실제 2026년 데이터는 141199에 있음)
+  if (D.orgChart) {
+    for (const o of D.orgChart) {
+      if (o['직책'] !== '팀장') continue;
+      const oc = o['코스'];
+      const name = o['성명'] && o['성명'].trim();
+      const direct = TL_KPI[oc];
+      const hasDirect2026 = direct && Object.keys(direct).some(k => k.startsWith('2026_'));
+      if (oc && !hasDirect2026 && name && TL_KPI_BY_NAME[name]) {
+        // 성명으로 찾아서 조직도 코스코드로 재등록 (2026년 데이터가 있는 레코드 우선)
+        TL_KPI[oc] = { ...TL_KPI_BY_NAME[name], '코스': oc };
+      }
+    }
   }
 
   // Material categories  ── 세비타비(5003052) 우선 분기
