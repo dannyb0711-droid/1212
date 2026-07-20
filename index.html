@@ -681,6 +681,10 @@ function computeAggregates(D) {
   // - 당월 목표(monT): 마지막 레코드의 판매목표금액 (당월 목표)
   const allRecs = D.sales2026ByMaterial || [];
 
+  // 당월(curMonthPfx="YYYY-MM") 연/월 숫자 — 신규 배정 코스 판별에 사용
+  const curYearNum  = parseInt(curMonthPfx.split('-')[0] || '0');
+  const curMonthNum = parseInt(curMonthPfx.split('-')[1] || '0');
+
   // 패스1: 코스+자재별 월별 레코드 집계
   // 구조 확인: 각 레코드는 해당 월의 목표(판매목표금액)와 실적(판매누계금액)을 나타냄
   // → YTD 목표(t_sum): 전체 월 목표 합산, YTD 실적(s_sum): 전체 월 실적 합산
@@ -716,7 +720,21 @@ function computeAggregates(D) {
     // 1월~당월까지 매월 연속으로 존재할 때만 유효(count === YTD_MONTHS).
     // 중간에 보고가 끊긴 1회성/단종 자재는 마지막 레코드가 당월 데이터가
     // 아닐 수 있으므로 당월목표 집계에서 제외 (YTD 목표(t)에는 영향 없음)
-    var mt = (cf.count === YTD_MONTHS) ? cf.t_last : 0;
+    //
+    // 예외: 코스+담당자 소속이동/신규배정으로 인해 이 코스 데이터가 이번 해에
+    // 처음 생긴 경우(HIRE_MAP의 부임일이 당월 이전 & 같은 해)에는 애초에
+    // 1월부터 데이터가 존재할 수 없으므로(count < YTD_MONTHS가 정상) count
+    // 체크를 건너뛰고 최신 레코드를 그대로 당월목표로 인정한다.
+    var isNewlyAssignedCourse = false;
+    var hireInfo = HIRE_MAP[cc];
+    if (hireInfo && hireInfo.assignDate) {
+      var adDate = new Date(hireInfo.assignDate);
+      if (!isNaN(adDate)) {
+        var adYear = adDate.getFullYear(), adMonth = adDate.getMonth() + 1;
+        if (adYear === curYearNum && adMonth <= curMonthNum) isNewlyAssignedCourse = true;
+      }
+    }
+    var mt = (cf.count === YTD_MONTHS || isNewlyAssignedCourse) ? cf.t_last : 0;
 
     OTC_TOT.t += t; OTC_TOT.s += s;
 
