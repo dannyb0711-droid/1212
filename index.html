@@ -1789,14 +1789,19 @@ const SIDO_CODE = {
   '경기':'31','강원':'32','충북':'33','충남':'34',
   '전북':'35','전남':'36','경북':'37','경남':'38','제주':'39'
 };
+// 2자리 시/도 코드 → 시/도명 역맵 (구/군 매칭 시 소속 시/도를 특정하기 위함)
+const CODE_TO_SIDO = Object.fromEntries(Object.entries(SIDO_CODE).map(([k, v]) => [v, k]));
 
 // ── 3. 담당지역 문자열 파싱 ──────────────────────────────────
-//   "서울(마포구, 서대문구), 경기(고양시)" → { sidoKeys, districts }
+//   "서울(마포구, 서대문구), 경기(고양시)" → { sidoKeys, sidoDistricts, districts }
+//   sidoDistricts는 시/도별로 구/군을 분리 보관 → 매칭 시 다른 시/도의
+//   동명 구(예: 대구 "북구" vs 경북 "포항시북구")가 서로 섞이지 않도록 함
 function parseTerritoryStr(raw) {
-  if (!raw) return { sidoKeys: [], districts: [], raw: '' };
+  if (!raw) return { sidoKeys: [], sidoDistricts: {}, districts: [], raw: '' };
 
   const sidoKeys = new Set();
-  const districts = new Set();
+  const sidoDistricts = {};   // { '대구': ['북구'], '경북': ['군위군', ...] }
+  const districts = new Set(); // fallback 배지 표시용 (전체 평면 목록)
 
   // 패턴 A: "도시(구1, 구2)" 반복
   const patA = /([가-힣]+)\(([^)]+)\)/g;
@@ -1804,8 +1809,9 @@ function parseTerritoryStr(raw) {
   while ((match = patA.exec(raw)) !== null) {
     const sido = match[1].trim();
     sidoKeys.add(sido);
+    if (!sidoDistricts[sido]) sidoDistricts[sido] = [];
     match[2].split(/[,，、\s]+/).map(s => s.trim()).filter(Boolean)
-      .forEach(d => districts.add(d));
+      .forEach(d => { sidoDistricts[sido].push(d); districts.add(d); });
   }
 
   // 패턴 B: 괄호 없는 순수 도시명 (예: "세종시, 충북(청주시)")
@@ -1813,12 +1819,17 @@ function parseTerritoryStr(raw) {
   noParenParts.map(s => s.trim()).filter(Boolean).forEach(s => {
     // 단순 시/도 키워드인지 확인
     for (const key of Object.keys(SIDO_CODE)) {
-      if (s.startsWith(key)) { sidoKeys.add(key); break; }
+      if (s.startsWith(key)) {
+        sidoKeys.add(key);
+        if (!sidoDistricts[key]) sidoDistricts[key] = []; // 시/도 전체 담당 (구/군 없음)
+        break;
+      }
     }
   });
 
   return {
     sidoKeys: [...sidoKeys],
+    sidoDistricts,
     districts: [...districts],
     raw
   };
@@ -1849,10 +1860,21 @@ function filterGeoJSON(geoJson, sidoKeys) {
 }
 
 // ── 6. 구/군명 매칭 함수 (다양한 표기 대응) ──────────────────
-function matchDistrict(geoName, districts) {
+//   geoCode(5자리 지자체 코드)로 이 폴리곤이 속한 시/도를 먼저 특정한 뒤,
+//   반드시 "같은 시/도" 안에서 선언된 구/군 목록하고만 비교한다.
+//   → 예: 담당지역이 대구(북구)일 때 경북 포항시북구·포항시남구는 코드 접두사가
+//     달라(37 vs 22) 애초에 비교 대상에서 제외되므로 오매칭이 발생하지 않음.
+function matchDistrict(geoCode, geoName, sidoDistricts) {
+  const sido = CODE_TO_SIDO[String(geoCode).slice(0, 2)];
+  if (!sido || !(sido in sidoDistricts)) return false;
+
+  const localDistricts = sidoDistricts[sido];
+  // 구/군 없이 시/도만 지정된 경우(예: "세종시") → 해당 시/도 전체를 담당구역으로 처리
+  if (!localDistricts.length) return true;
+
   const clean = n => n.replace(/특별시|광역시|특별자치시|특별자치도|도$/, '').trim();
   const gClean = clean(geoName);
-  return districts.some(d => {
+  return localDistricts.some(d => {
     const dClean = clean(d);
     return gClean === dClean || gClean.includes(dClean) || dClean.includes(gClean);
   });
@@ -1913,17 +1935,18 @@ function renderTerritoryMap(courseCode) {
       const el = document.getElementById('map-canvas');
       if (!el) return;
 
-      // 필터 결과 feature 이름 목록
+      // 필터 결과 feature 목록 (이름 + 코드)
       const features = filteredGeo.features || [];
-      const geoNames = features.map(f =>
-        f.properties?.NAME_KOR || f.properties?.name ||
-        f.properties?.SIG_KOR_NM || f.properties?.sigungu_nm || ''
-      );
+      const geoEntries = features.map(f => ({
+        name: f.properties?.NAME_KOR || f.properties?.name ||
+              f.properties?.SIG_KOR_NM || f.properties?.sigungu_nm || '',
+        code: f.properties?.code || f.properties?.CODE || ''
+      }));
 
-      // 담당 구역 값 세팅
-      const mapData = geoNames.map(name => ({
+      // 담당 구역 값 세팅 — 같은 시/도 소속 구/군끼리만 비교(시/도 간 동명 구 오매칭 방지)
+      const mapData = geoEntries.map(({ name, code }) => ({
         name,
-        value: matchDistrict(name, parsed.districts) ? 1 : 0
+        value: matchDistrict(code, name, parsed.sidoDistricts) ? 1 : 0
       }));
 
       // 매칭된 구역이 하나도 없으면 fallback
