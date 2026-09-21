@@ -681,10 +681,6 @@ function computeAggregates(D) {
   // - 당월 목표(monT): 마지막 레코드의 판매목표금액 (당월 목표)
   const allRecs = D.sales2026ByMaterial || [];
 
-  // 당월(curMonthPfx="YYYY-MM") 연/월 숫자 — 신규 배정 코스 판별에 사용
-  const curYearNum  = parseInt(curMonthPfx.split('-')[0] || '0');
-  const curMonthNum = parseInt(curMonthPfx.split('-')[1] || '0');
-
   // 패스1: 코스+자재별 월별 레코드 집계
   // 구조 확인: 각 레코드는 해당 월의 목표(판매목표금액)와 실적(판매누계금액)을 나타냄
   // → YTD 목표(t_sum): 전체 월 목표 합산, YTD 실적(s_sum): 전체 월 실적 합산
@@ -720,21 +716,7 @@ function computeAggregates(D) {
     // 1월~당월까지 매월 연속으로 존재할 때만 유효(count === YTD_MONTHS).
     // 중간에 보고가 끊긴 1회성/단종 자재는 마지막 레코드가 당월 데이터가
     // 아닐 수 있으므로 당월목표 집계에서 제외 (YTD 목표(t)에는 영향 없음)
-    //
-    // 예외: 코스+담당자 소속이동/신규배정으로 인해 이 코스 데이터가 이번 해에
-    // 처음 생긴 경우(HIRE_MAP의 부임일이 당월 이전 & 같은 해)에는 애초에
-    // 1월부터 데이터가 존재할 수 없으므로(count < YTD_MONTHS가 정상) count
-    // 체크를 건너뛰고 최신 레코드를 그대로 당월목표로 인정한다.
-    var isNewlyAssignedCourse = false;
-    var hireInfo = HIRE_MAP[cc];
-    if (hireInfo && hireInfo.assignDate) {
-      var adDate = new Date(hireInfo.assignDate);
-      if (!isNaN(adDate)) {
-        var adYear = adDate.getFullYear(), adMonth = adDate.getMonth() + 1;
-        if (adYear === curYearNum && adMonth <= curMonthNum) isNewlyAssignedCourse = true;
-      }
-    }
-    var mt = (cf.count === YTD_MONTHS || isNewlyAssignedCourse) ? cf.t_last : 0;
+    var mt = (cf.count === YTD_MONTHS) ? cf.t_last : 0;
 
     OTC_TOT.t += t; OTC_TOT.s += s;
 
@@ -819,14 +801,9 @@ function computeAggregates(D) {
 
   // ── 3. currentMonthActuals → ms 덮어쓰기 (일일실적보고 엑셀 기준) ────────
   if (cma) {
-    var cmaC    = cma.byCourse    || {};
-    var cmaT    = cma.byTeam      || {};
-    var cmaD    = cma.byDept      || {};
-    // ★ 신규: 일일실적보고 기반 제품군별 집계 (자재구분 로드 시에만 존재)
-    var cmaCatD = cma.byCatDept   || {};  // { 부:  { 카테고리: 실적 } }
-    var cmaCatT = cma.byCatTeam   || {};  // { 팀:  { 카테고리: 실적 } }
-    var cmaCatC = cma.byCatCourse || {};  // { 코스: { 카테고리: 실적 } }
-    var hasCmaC = Object.keys(cmaCatD).length > 0;
+    var cmaC = cma.byCourse || {};
+    var cmaT = cma.byTeam   || {};
+    var cmaD = cma.byDept   || {};
 
     // 코스별 ms 설정
     for (var cc2 in COURSE_SALES) {
@@ -842,23 +819,6 @@ function computeAggregates(D) {
     }
     // OTC 전체 ms = 부별 합산
     OTC_TOT.ms = Object.values(cmaD).reduce(function(a,b){ return a+b; }, 0);
-
-    // ★ 신규: 제품군별 msCats를 일일실적보고 기준으로 덮어쓰기
-    // (byCatDept/byCatTeam/byCatCourse가 있는 경우에만 적용)
-    if (hasCmaC) {
-      // 부별 msCats 덮어쓰기
-      for (var dc3 in DEPT_SALES) {
-        if (cmaCatD[dc3]) DEPT_SALES[dc3].msCats = Object.assign({}, cmaCatD[dc3]);
-      }
-      // 팀별 msCats 덮어쓰기
-      for (var tc3 in TEAM_SALES) {
-        if (cmaCatT[tc3]) TEAM_SALES[tc3].msCats = Object.assign({}, cmaCatT[tc3]);
-      }
-      // 코스별 msCats 덮어쓰기
-      for (var cc3 in COURSE_SALES) {
-        if (cmaCatC[cc3]) COURSE_SALES[cc3].msCats = Object.assign({}, cmaCatC[cc3]);
-      }
-    }
   }
 }
 
@@ -1811,19 +1771,14 @@ const SIDO_CODE = {
   '경기':'31','강원':'32','충북':'33','충남':'34',
   '전북':'35','전남':'36','경북':'37','경남':'38','제주':'39'
 };
-// 2자리 시/도 코드 → 시/도명 역맵 (구/군 매칭 시 소속 시/도를 특정하기 위함)
-const CODE_TO_SIDO = Object.fromEntries(Object.entries(SIDO_CODE).map(([k, v]) => [v, k]));
 
 // ── 3. 담당지역 문자열 파싱 ──────────────────────────────────
-//   "서울(마포구, 서대문구), 경기(고양시)" → { sidoKeys, sidoDistricts, districts }
-//   sidoDistricts는 시/도별로 구/군을 분리 보관 → 매칭 시 다른 시/도의
-//   동명 구(예: 대구 "북구" vs 경북 "포항시북구")가 서로 섞이지 않도록 함
+//   "서울(마포구, 서대문구), 경기(고양시)" → { sidoKeys, districts }
 function parseTerritoryStr(raw) {
-  if (!raw) return { sidoKeys: [], sidoDistricts: {}, districts: [], raw: '' };
+  if (!raw) return { sidoKeys: [], districts: [], raw: '' };
 
   const sidoKeys = new Set();
-  const sidoDistricts = {};   // { '대구': ['북구'], '경북': ['군위군', ...] }
-  const districts = new Set(); // fallback 배지 표시용 (전체 평면 목록)
+  const districts = new Set();
 
   // 패턴 A: "도시(구1, 구2)" 반복
   const patA = /([가-힣]+)\(([^)]+)\)/g;
@@ -1831,9 +1786,8 @@ function parseTerritoryStr(raw) {
   while ((match = patA.exec(raw)) !== null) {
     const sido = match[1].trim();
     sidoKeys.add(sido);
-    if (!sidoDistricts[sido]) sidoDistricts[sido] = [];
     match[2].split(/[,，、\s]+/).map(s => s.trim()).filter(Boolean)
-      .forEach(d => { sidoDistricts[sido].push(d); districts.add(d); });
+      .forEach(d => districts.add(d));
   }
 
   // 패턴 B: 괄호 없는 순수 도시명 (예: "세종시, 충북(청주시)")
@@ -1841,17 +1795,12 @@ function parseTerritoryStr(raw) {
   noParenParts.map(s => s.trim()).filter(Boolean).forEach(s => {
     // 단순 시/도 키워드인지 확인
     for (const key of Object.keys(SIDO_CODE)) {
-      if (s.startsWith(key)) {
-        sidoKeys.add(key);
-        if (!sidoDistricts[key]) sidoDistricts[key] = []; // 시/도 전체 담당 (구/군 없음)
-        break;
-      }
+      if (s.startsWith(key)) { sidoKeys.add(key); break; }
     }
   });
 
   return {
     sidoKeys: [...sidoKeys],
-    sidoDistricts,
     districts: [...districts],
     raw
   };
@@ -1882,21 +1831,10 @@ function filterGeoJSON(geoJson, sidoKeys) {
 }
 
 // ── 6. 구/군명 매칭 함수 (다양한 표기 대응) ──────────────────
-//   geoCode(5자리 지자체 코드)로 이 폴리곤이 속한 시/도를 먼저 특정한 뒤,
-//   반드시 "같은 시/도" 안에서 선언된 구/군 목록하고만 비교한다.
-//   → 예: 담당지역이 대구(북구)일 때 경북 포항시북구·포항시남구는 코드 접두사가
-//     달라(37 vs 22) 애초에 비교 대상에서 제외되므로 오매칭이 발생하지 않음.
-function matchDistrict(geoCode, geoName, sidoDistricts) {
-  const sido = CODE_TO_SIDO[String(geoCode).slice(0, 2)];
-  if (!sido || !(sido in sidoDistricts)) return false;
-
-  const localDistricts = sidoDistricts[sido];
-  // 구/군 없이 시/도만 지정된 경우(예: "세종시") → 해당 시/도 전체를 담당구역으로 처리
-  if (!localDistricts.length) return true;
-
+function matchDistrict(geoName, districts) {
   const clean = n => n.replace(/특별시|광역시|특별자치시|특별자치도|도$/, '').trim();
   const gClean = clean(geoName);
-  return localDistricts.some(d => {
+  return districts.some(d => {
     const dClean = clean(d);
     return gClean === dClean || gClean.includes(dClean) || dClean.includes(gClean);
   });
@@ -1957,18 +1895,17 @@ function renderTerritoryMap(courseCode) {
       const el = document.getElementById('map-canvas');
       if (!el) return;
 
-      // 필터 결과 feature 목록 (이름 + 코드)
+      // 필터 결과 feature 이름 목록
       const features = filteredGeo.features || [];
-      const geoEntries = features.map(f => ({
-        name: f.properties?.NAME_KOR || f.properties?.name ||
-              f.properties?.SIG_KOR_NM || f.properties?.sigungu_nm || '',
-        code: f.properties?.code || f.properties?.CODE || ''
-      }));
+      const geoNames = features.map(f =>
+        f.properties?.NAME_KOR || f.properties?.name ||
+        f.properties?.SIG_KOR_NM || f.properties?.sigungu_nm || ''
+      );
 
-      // 담당 구역 값 세팅 — 같은 시/도 소속 구/군끼리만 비교(시/도 간 동명 구 오매칭 방지)
-      const mapData = geoEntries.map(({ name, code }) => ({
+      // 담당 구역 값 세팅
+      const mapData = geoNames.map(name => ({
         name,
-        value: matchDistrict(code, name, parsed.sidoDistricts) ? 1 : 0
+        value: matchDistrict(name, parsed.districts) ? 1 : 0
       }));
 
       // 매칭된 구역이 하나도 없으면 fallback
