@@ -843,6 +843,20 @@ function computeAggregates(D) {
     // OTC 전체 ms = 부별 합산
     OTC_TOT.ms = Object.values(cmaD).reduce(function(a,b){ return a+b; }, 0);
 
+    // ★ OTC 전체 목표를 dailyReport 기준으로 보정
+    // sales2026ByMaterial 합산값과 dailyReport 목표금액 합산값이 다를 수 있으므로
+    // dailyReport 기준값(당월 목표 = 연간 목표)을 사용
+    if (D.dailyReport && D.dailyReport.length > 0) {
+      var drTotalTarget = 0;
+      for (var dri = 0; dri < D.dailyReport.length; dri++) {
+        drTotalTarget += (D.dailyReport[dri]['목표금액'] || 0);
+      }
+      if (drTotalTarget > 0) {
+        OTC_TOT.t    = drTotalTarget;  // YTD 누계 목표
+        OTC_TOT.monT = drTotalTarget;  // 당월 목표
+      }
+    }
+
     // ★ 신규: 제품군별 msCats를 일일실적보고 기준으로 덮어쓰기
     // (byCatDept/byCatTeam/byCatCourse가 있는 경우에만 적용)
     if (hasCmaC) {
