@@ -144,7 +144,7 @@ body::before {
 <script>
 (function() {
   // ★ 비밀번호 변경 시 아래 값만 수정하세요 ★
-  var PASS = 'dw1897';
+  var PASS = '189700';
 
   // 세션 동안 유지 (새 탭/창을 열면 다시 입력)
   var SESSION_KEY = 'dw_otc_auth';
@@ -852,8 +852,8 @@ function computeAggregates(D) {
         drTotalTarget += (D.dailyReport[dri]['목표금액'] || 0);
       }
       if (drTotalTarget > 0) {
-        OTC_TOT.t    = drTotalTarget;  // YTD 누계 목표
-        OTC_TOT.monT = drTotalTarget;  // 당월 목표
+        // OTC_TOT.t (YTD 누계목표)는 sales2026ByMaterial에서 이미 정확히 집계됨 → 덮어쓰지 않음
+        OTC_TOT.monT = drTotalTarget;  // 당월 목표만 dailyReport 기준으로 보정
       }
     }
 
