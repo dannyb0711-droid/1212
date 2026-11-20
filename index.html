@@ -848,12 +848,54 @@ function computeAggregates(D) {
     // dailyReport 기준값(당월 목표 = 연간 목표)을 사용
     if (D.dailyReport && D.dailyReport.length > 0) {
       var drTotalTarget = 0;
+      // ★ 카테고리별 당월 목표도 dailyReport 기준으로 보정
+      // sales2026ByMaterial의 count===YTD_MONTHS 조건으로 인해
+      // 중간 배정/신규 코스의 목표가 누락되는 문제 수정
+      var drMonTCatByDept   = {};  // { 부코드: { 카테고리: 목표합 } }
+      var drMonTCatByTeam   = {};  // { 팀코드: { 카테고리: 목표합 } }
+      var drMonTCatByCourse = {};  // { 코스코드: { 카테고리: 목표합 } }
       for (var dri = 0; dri < D.dailyReport.length; dri++) {
-        drTotalTarget += (D.dailyReport[dri]['목표금액'] || 0);
+        var drRec = D.dailyReport[dri];
+        var drAmt = drRec['목표금액'] || 0;
+        drTotalTarget += drAmt;
+        // 카테고리별 집계
+        var drMatCode = String(drRec['자재'] || '');
+        var drCat = drMatCode === SEBITABI_CODE ? '세비타비' : (MAT_CAT[drMatCode] || (CAT_MAP[drRec['자재구분']] || '기타'));
+        var drDc = String(drRec['영업부'] || '');
+        var drTc = String(drRec['영업지점'] || '');
+        var drCc = String(drRec['영업코스'] || '');
+        if (drDc) { if (!drMonTCatByDept[drDc]) drMonTCatByDept[drDc]={}; drMonTCatByDept[drDc][drCat]=(drMonTCatByDept[drDc][drCat]||0)+drAmt; }
+        if (drTc) { if (!drMonTCatByTeam[drTc]) drMonTCatByTeam[drTc]={}; drMonTCatByTeam[drTc][drCat]=(drMonTCatByTeam[drTc][drCat]||0)+drAmt; }
+        if (drCc) { if (!drMonTCatByCourse[drCc]) drMonTCatByCourse[drCc]={}; drMonTCatByCourse[drCc][drCat]=(drMonTCatByCourse[drCc][drCat]||0)+drAmt; }
       }
       if (drTotalTarget > 0) {
         // OTC_TOT.t (YTD 누계목표)는 sales2026ByMaterial에서 이미 정확히 집계됨 → 덮어쓰지 않음
         OTC_TOT.monT = drTotalTarget;  // 당월 목표만 dailyReport 기준으로 보정
+      }
+      // 카테고리별 당월 목표(cats[cat].monT)를 dailyReport 기준으로 덮어쓰기
+      for (var dc4 in DEPT_SALES) {
+        if (drMonTCatByDept[dc4]) {
+          for (var cat4 in drMonTCatByDept[dc4]) {
+            if (!DEPT_SALES[dc4].cats[cat4]) DEPT_SALES[dc4].cats[cat4] = { t:0, s:0, monT:0 };
+            DEPT_SALES[dc4].cats[cat4].monT = drMonTCatByDept[dc4][cat4];
+          }
+        }
+      }
+      for (var tc4 in TEAM_SALES) {
+        if (drMonTCatByTeam[tc4]) {
+          for (var cat4t in drMonTCatByTeam[tc4]) {
+            if (!TEAM_SALES[tc4].cats[cat4t]) TEAM_SALES[tc4].cats[cat4t] = { t:0, s:0, monT:0 };
+            TEAM_SALES[tc4].cats[cat4t].monT = drMonTCatByTeam[tc4][cat4t];
+          }
+        }
+      }
+      for (var cc4 in COURSE_SALES) {
+        if (drMonTCatByCourse[cc4]) {
+          for (var cat4c in drMonTCatByCourse[cc4]) {
+            if (!COURSE_SALES[cc4].cats[cat4c]) COURSE_SALES[cc4].cats[cat4c] = { t:0, s:0, monT:0 };
+            COURSE_SALES[cc4].cats[cat4c].monT = drMonTCatByCourse[cc4][cat4c];
+          }
+        }
       }
     }
 
@@ -1525,17 +1567,17 @@ function renderProductsChart(level, deptCode, teamCode) {
       const mc = DEPT_SALES[dc].msCats || {};
       for (const cat in mc) { msCatsData[cat] = (msCatsData[cat] || 0) + mc[cat]; }
       const tc2 = DEPT_SALES[dc].cats || {};
-      for (const cat in tc2) { monTCatsData[cat] = (monTCatsData[cat] || 0) + (tc2[cat].monT || tc2[cat].t); }
+      for (const cat in tc2) { monTCatsData[cat] = (monTCatsData[cat] || 0) + (tc2[cat].monT || 0); }
     }
     activeDeptCode = null;
   } else if (level === 'dept') {
     msCatsData  = DEPT_SALES[deptCode]?.msCats || {};
     const tc2   = DEPT_SALES[deptCode]?.cats || {};
-    for (const cat in tc2) monTCatsData[cat] = (tc2[cat].monT || tc2[cat].t);
+    for (const cat in tc2) monTCatsData[cat] = (tc2[cat].monT || 0);
   } else if (level === 'team') {
     msCatsData  = TEAM_SALES[teamCode]?.msCats || {};
     const tc2   = TEAM_SALES[teamCode]?.cats || {};
-    for (const cat in tc2) monTCatsData[cat] = (tc2[cat].monT || tc2[cat].t);
+    for (const cat in tc2) monTCatsData[cat] = (tc2[cat].monT || 0);
     activeDeptCode = TEAM_SALES[teamCode]?.deptCode || deptCode;
   }
 
