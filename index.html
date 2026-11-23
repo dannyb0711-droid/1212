@@ -892,6 +892,16 @@ function computeAggregates(D) {
       }
       if (drTotalTarget > 0) {
         OTC_TOT.monT = drTotalTarget;  // 당월 목표만 dailyReport 기준으로 보정
+        // ★ 부서/팀/코스별 당월목표(monT)도 dailyReport 기준으로 덮어쓰기
+        for (var drDcM in drTargetByDept) {
+          if (DEPT_SALES[drDcM]) DEPT_SALES[drDcM].monT = drTargetByDept[drDcM];
+        }
+        for (var drTcM in drTargetByTeam) {
+          if (TEAM_SALES[drTcM]) TEAM_SALES[drTcM].monT = drTargetByTeam[drTcM];
+        }
+        for (var drCcM in drTargetByCourse) {
+          if (COURSE_SALES[drCcM]) COURSE_SALES[drCcM].monT = drTargetByCourse[drCcM];
+        }
       }
 
       // ★ YTD 목표(t) 보정: SAP에 당월 데이터가 없는 부서는 dailyReport 목표로 보충
