@@ -690,6 +690,8 @@ function computeAggregates(D) {
   // → YTD 목표(t_sum): 전체 월 목표 합산, YTD 실적(s_sum): 전체 월 실적 합산
   // → 당월 목표(t_last): 마지막 레코드(당월) 목표
   const comboFinal = {}; // { ckey: { dc, tc, cc, cat, t_sum, s_sum, t_last, count } }
+  // ★ 부서별 최대 레코드 수 추적 — SAP에 당월 데이터가 있는 부서 판별용
+  var deptMaxCount = {};
   for (var pi = 0; pi < allRecs.length; pi++) {
     var pr   = allRecs[pi];
     var pdc  = pr['영업부'], ptc = pr['영업팀'], pcc = pr['코스'];
@@ -708,6 +710,10 @@ function computeAggregates(D) {
     // 당월 목표는 마지막 레코드 값으로 덮어쓰기
     comboFinal[pkey].t_last = pt;
     comboFinal[pkey].count++;
+    // 부서별 최대 레코드 수 갱신
+    if (!deptMaxCount[pdc] || comboFinal[pkey].count > deptMaxCount[pdc]) {
+      deptMaxCount[pdc] = comboFinal[pkey].count;
+    }
   }
 
   // 패스2: 집계된 값으로 각 레벨 SALES 오브젝트에 합산
@@ -854,6 +860,10 @@ function computeAggregates(D) {
       var drMonTCatByDept   = {};  // { 부코드: { 카테고리: 목표합 } }
       var drMonTCatByTeam   = {};  // { 팀코드: { 카테고리: 목표합 } }
       var drMonTCatByCourse = {};  // { 코스코드: { 카테고리: 목표합 } }
+      // ★ 부서/팀/코스별 당월 목표 합계 (YTD t 보정용)
+      var drTargetByDept   = {};
+      var drTargetByTeam   = {};
+      var drTargetByCourse = {};
       for (var dri = 0; dri < D.dailyReport.length; dri++) {
         var drRec = D.dailyReport[dri];
         var drAmt = drRec['목표금액'] || 0;
@@ -864,36 +874,108 @@ function computeAggregates(D) {
         var drDc = String(drRec['영업부'] || '');
         var drTc = String(drRec['영업지점'] || '');
         var drCc = String(drRec['영업코스'] || '');
-        if (drDc) { if (!drMonTCatByDept[drDc]) drMonTCatByDept[drDc]={}; drMonTCatByDept[drDc][drCat]=(drMonTCatByDept[drDc][drCat]||0)+drAmt; }
-        if (drTc) { if (!drMonTCatByTeam[drTc]) drMonTCatByTeam[drTc]={}; drMonTCatByTeam[drTc][drCat]=(drMonTCatByTeam[drTc][drCat]||0)+drAmt; }
-        if (drCc) { if (!drMonTCatByCourse[drCc]) drMonTCatByCourse[drCc]={}; drMonTCatByCourse[drCc][drCat]=(drMonTCatByCourse[drCc][drCat]||0)+drAmt; }
+        if (drDc) {
+          if (!drMonTCatByDept[drDc]) drMonTCatByDept[drDc]={};
+          drMonTCatByDept[drDc][drCat]=(drMonTCatByDept[drDc][drCat]||0)+drAmt;
+          drTargetByDept[drDc] = (drTargetByDept[drDc]||0) + drAmt;
+        }
+        if (drTc) {
+          if (!drMonTCatByTeam[drTc]) drMonTCatByTeam[drTc]={};
+          drMonTCatByTeam[drTc][drCat]=(drMonTCatByTeam[drTc][drCat]||0)+drAmt;
+          drTargetByTeam[drTc] = (drTargetByTeam[drTc]||0) + drAmt;
+        }
+        if (drCc) {
+          if (!drMonTCatByCourse[drCc]) drMonTCatByCourse[drCc]={};
+          drMonTCatByCourse[drCc][drCat]=(drMonTCatByCourse[drCc][drCat]||0)+drAmt;
+          drTargetByCourse[drCc] = (drTargetByCourse[drCc]||0) + drAmt;
+        }
       }
       if (drTotalTarget > 0) {
-        // OTC_TOT.t (YTD 누계목표)는 sales2026ByMaterial에서 이미 정확히 집계됨 → 덮어쓰지 않음
         OTC_TOT.monT = drTotalTarget;  // 당월 목표만 dailyReport 기준으로 보정
       }
+
+      // ★ YTD 목표(t) 보정: SAP에 당월 데이터가 없는 부서는 dailyReport 목표로 보충
+      // deptMaxCount[dc] < YTD_MONTHS → 해당 부서의 SAP 데이터에 당월이 빠져있음
+      for (var drDc2 in drTargetByDept) {
+        if (!deptMaxCount[drDc2] || deptMaxCount[drDc2] < YTD_MONTHS) {
+          var addT = drTargetByDept[drDc2] || 0;
+          OTC_TOT.t += addT;
+          if (DEPT_SALES[drDc2]) DEPT_SALES[drDc2].t += addT;
+        }
+      }
+      // 팀별 YTD t 보정
+      for (var drTc2 in drTargetByTeam) {
+        var teamDept = TEAM_SALES[drTc2] && TEAM_SALES[drTc2].deptCode;
+        if (teamDept && (!deptMaxCount[teamDept] || deptMaxCount[teamDept] < YTD_MONTHS)) {
+          var addTt = drTargetByTeam[drTc2] || 0;
+          if (TEAM_SALES[drTc2]) TEAM_SALES[drTc2].t += addTt;
+        }
+      }
+      // 코스별 YTD t 보정
+      for (var drCc2 in drTargetByCourse) {
+        var courseTeam = COURSE_SALES[drCc2] && COURSE_SALES[drCc2].teamCode;
+        var courseDept = courseTeam && TEAM_SALES[courseTeam] && TEAM_SALES[courseTeam].deptCode;
+        if (courseDept && (!deptMaxCount[courseDept] || deptMaxCount[courseDept] < YTD_MONTHS)) {
+          var addTc = drTargetByCourse[drCc2] || 0;
+          if (COURSE_SALES[drCc2]) COURSE_SALES[drCc2].t += addTc;
+        }
+      }
+
+      // ★ YTD 실적(s) 보정: SAP에 당월 데이터가 없는 부서는 CMA 실적으로 보충
+      if (cma) {
+        for (var cmaDc in cmaD) {
+          if (!deptMaxCount[cmaDc] || deptMaxCount[cmaDc] < YTD_MONTHS) {
+            var addS = cmaD[cmaDc] || 0;
+            OTC_TOT.s += addS;
+            if (DEPT_SALES[cmaDc]) DEPT_SALES[cmaDc].s += addS;
+          }
+        }
+        for (var cmaTc in cmaT) {
+          var cmaTeamDept = TEAM_SALES[cmaTc] && TEAM_SALES[cmaTc].deptCode;
+          if (cmaTeamDept && (!deptMaxCount[cmaTeamDept] || deptMaxCount[cmaTeamDept] < YTD_MONTHS)) {
+            if (TEAM_SALES[cmaTc]) TEAM_SALES[cmaTc].s += (cmaT[cmaTc] || 0);
+          }
+        }
+        for (var cmaCc in cmaC) {
+          var cmaCourseTeam = COURSE_SALES[cmaCc] && COURSE_SALES[cmaCc].teamCode;
+          var cmaCourseDept = cmaCourseTeam && TEAM_SALES[cmaCourseTeam] && TEAM_SALES[cmaCourseTeam].deptCode;
+          if (cmaCourseDept && (!deptMaxCount[cmaCourseDept] || deptMaxCount[cmaCourseDept] < YTD_MONTHS)) {
+            if (COURSE_SALES[cmaCc]) COURSE_SALES[cmaCc].s += (cmaC[cmaCc] || 0);
+          }
+        }
+      }
       // 카테고리별 당월 목표(cats[cat].monT)를 dailyReport 기준으로 덮어쓰기
+      // ★ SAP에 당월 데이터가 없는 부서는 카테고리별 YTD t도 보정
       for (var dc4 in DEPT_SALES) {
         if (drMonTCatByDept[dc4]) {
+          var needsCatTFix = (!deptMaxCount[dc4] || deptMaxCount[dc4] < YTD_MONTHS);
           for (var cat4 in drMonTCatByDept[dc4]) {
             if (!DEPT_SALES[dc4].cats[cat4]) DEPT_SALES[dc4].cats[cat4] = { t:0, s:0, monT:0 };
             DEPT_SALES[dc4].cats[cat4].monT = drMonTCatByDept[dc4][cat4];
+            if (needsCatTFix) DEPT_SALES[dc4].cats[cat4].t += drMonTCatByDept[dc4][cat4];
           }
         }
       }
       for (var tc4 in TEAM_SALES) {
         if (drMonTCatByTeam[tc4]) {
+          var tc4Dept = TEAM_SALES[tc4].deptCode;
+          var needsCatTFixT = tc4Dept && (!deptMaxCount[tc4Dept] || deptMaxCount[tc4Dept] < YTD_MONTHS);
           for (var cat4t in drMonTCatByTeam[tc4]) {
             if (!TEAM_SALES[tc4].cats[cat4t]) TEAM_SALES[tc4].cats[cat4t] = { t:0, s:0, monT:0 };
             TEAM_SALES[tc4].cats[cat4t].monT = drMonTCatByTeam[tc4][cat4t];
+            if (needsCatTFixT) TEAM_SALES[tc4].cats[cat4t].t += drMonTCatByTeam[tc4][cat4t];
           }
         }
       }
       for (var cc4 in COURSE_SALES) {
         if (drMonTCatByCourse[cc4]) {
+          var cc4Team = COURSE_SALES[cc4].teamCode;
+          var cc4Dept = cc4Team && TEAM_SALES[cc4Team] && TEAM_SALES[cc4Team].deptCode;
+          var needsCatTFixC = cc4Dept && (!deptMaxCount[cc4Dept] || deptMaxCount[cc4Dept] < YTD_MONTHS);
           for (var cat4c in drMonTCatByCourse[cc4]) {
             if (!COURSE_SALES[cc4].cats[cat4c]) COURSE_SALES[cc4].cats[cat4c] = { t:0, s:0, monT:0 };
             COURSE_SALES[cc4].cats[cat4c].monT = drMonTCatByCourse[cc4][cat4c];
+            if (needsCatTFixC) COURSE_SALES[cc4].cats[cat4c].t += drMonTCatByCourse[cc4][cat4c];
           }
         }
       }
